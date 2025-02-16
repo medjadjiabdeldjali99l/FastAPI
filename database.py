@@ -1,5 +1,5 @@
 import xmlrpc.client
-from tools.Credentials import OdooCredentials
+from Models.OddoDataBase import OdooCredentials
 from xmlrpc.client import ServerProxy
 
 

@@ -1,7 +1,8 @@
 import uvicorn
 from fastapi import FastAPI
-# from routes import router
+from Routes import router
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from database import OdooDatabase
 
 app = FastAPI(
@@ -11,10 +12,14 @@ app = FastAPI(
 
 
 
-def get_odoo_database():
-    return app.state.odooDatabase 
-    
+@app.on_event("startup")
+def startup_event():
+    app.state.odooDatabase = OdooDatabase()  # Assure-toi que cette classe est définie quelque part
 
+def get_odoo_database():
+    return app.state.odooDatabase
+    
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 app.add_middleware(
     CORSMiddleware,
