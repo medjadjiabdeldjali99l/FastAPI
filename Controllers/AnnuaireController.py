@@ -1,6 +1,8 @@
 from fastapi import Request , HTTPException
 from database import OdooDatabase
-# from utils.Token import check_token
+from Models import Token
+from Tools.TokenTools import TokenTools
+import jwt
 
 DELEGUE_GROUP_XML_ID="crm_plv.group_plvp_commercial"
 SUP_GROUP_XML_ID="crm_plv.group_plvp_superviseur"
@@ -20,20 +22,24 @@ def get_group_id(group_xml_id ,odooDatabase ):
 
 class AnnuaireController():
     @staticmethod # Ready
-    def get_contacts( idWilaya:int,search:str):
-        fonction_emp = request.query_params.get('fonction', None)
+    def get_contacts(request : Request,token:Token ,fonction:str, idWilaya:int,search:str):
+
+        print("les infossssssssssssssssssssssssssssssssss", fonction, idWilaya ,search  )
+
         
     
         odooDatabase : OdooDatabase = request.app.state.odooDatabase
-        print("allloooooooooooooooooooooo")
-        user = check_token(token)
+
+        
+        user = TokenTools.check_token(token)
+        print("userrrrrrrrrrrrrrrrrrrrrr",user)
         if not user : 
             raise HTTPException(
                 status_code=401,  
-                detail={"status": False, "error": "Token Invalide"}
+                detail={"status": False, "error": "Tokennnnnnnnnnnnnnnnnnnnnnnnnnnn Invalide"}
             )
         
-        if fonction_emp == 'sup':
+        if fonction == 'sup':
             sup_group = odooDatabase.execute_kw(
                 'ir.model.data', 'search_read',
                 [[('model', '=', 'res.groups'), 
@@ -124,7 +130,7 @@ class AnnuaireController():
             except Exception as e:
                 raise HTTPException(status_code=500, detail=str(e))
 
-        elif fonction_emp == 'delegue':
+        elif fonction == 'delegue':
 
             delegue_group = odooDatabase.execute_kw(
                 'ir.model.data', 'search_read',
