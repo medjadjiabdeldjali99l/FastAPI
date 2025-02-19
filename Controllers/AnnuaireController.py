@@ -3,6 +3,7 @@ from database import OdooDatabase
 from Models import Token
 from Tools.TokenTools import TokenTools
 import jwt
+from datetime import datetime, timedelta, timezone
 
 DELEGUE_GROUP_XML_ID="crm_plv.group_plvp_commercial"
 SUP_GROUP_XML_ID="crm_plv.group_plvp_superviseur"
@@ -38,6 +39,14 @@ class AnnuaireController():
                 status_code=401,  
                 detail={"status": False, "error": "Tokennnnnnnnnnnnnnnnnnnnnnnnnnnn Invalide"}
             )
+        
+        dat={"id":1,"telephone":"0778240169", "codeDetaillant":"PDD012569"}
+        access_token_expires = timedelta(minutes=30)
+        tt= TokenTools.generate_token(data=dat,expires_delta=access_token_expires)
+        print ( "ççççççççççççççççççççççççççççççççççççç",tt)
+
+        yy=TokenTools.check_token(tt)
+        print("jiraaaaaaaaaaaa",yy)
         
         if fonction == 'sup':
             sup_group = odooDatabase.execute_kw(

@@ -1,4 +1,8 @@
 from pydantic import BaseModel
 
 class TokenData(BaseModel):
-    username: str | None = None
+    id : int | None = None
+    telephone : str | None = None
+    codeDetaillant: str | None = None
+
+

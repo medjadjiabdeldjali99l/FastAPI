@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-# from Routes.Authentification import router as AuthentificationRouter
+from Routes.Authentification import router as AuthentificationRouter
 from Routes.Main import router as MainRouter
 # from routes.Profile import router as ProfileRouter
 from Routes.Annuaire import router as AnnuaireRouter
@@ -13,7 +13,7 @@ from Routes.Wilaya import router as  WilayasRouter
 
 router = APIRouter()
 
-# router.include_router(AuthentificationRouter, tags=["Authentification"], prefix="/auth")
+router.include_router(AuthentificationRouter, tags=["Authentification"], prefix="/auth")
 router.include_router(MainRouter, tags=["Main"], prefix="/main")
 # router.include_router(ProfileRouter, tags=["Profile"],prefix="/profile")
 router.include_router(AnnuaireRouter,tags=["Annuaire"],prefix="/annuaire")
