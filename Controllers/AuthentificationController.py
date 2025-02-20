@@ -1,18 +1,18 @@
 from fastapi import Request, HTTPException, status
 from database import OdooDatabase
 from typing import List ,Optional
-from Models import TokenData
+from Models.TokenData import TokenData
 from Models.Image import Image
 # from validators.Authentification import *
 
 from Models.UserData import UserData
-# from utils.Password import Password
+from Tools.Password import Password
 from Models.SocialMedia import SocialMedia, SocialMediaType
 # from utils import remove_none_values
 import bcrypt
 
 
-
+from Models.UserConnexion import *
 from Models import Token
 from Tools.TokenTools import TokenTools
 import jwt
@@ -20,6 +20,7 @@ import jwt
 
 
 
+from datetime import datetime, timedelta, timezone
 
 
 
@@ -127,10 +128,10 @@ class AuthentificationController():
 
 
 
-        user_1 = odooDatabase.execute_kw('info.cnx', 'read', [token_data.id])
+        user_1 = odooDatabase.execute_kw('info.cnx', 'read', [token_data['id']])
         user_2 = odooDatabase.execute_kw('res.partner', 'read', [user_1[0]['id_user'][0]], {'fields': ['id','name', 'name_magasin', 'categorie_id', 'commune_id', 'street','code','etoile','nbr_points', 'state_id','new_tlp1']})	
         full_user = {**user_1[0],**user_2[0]}
-        social_media = odooDatabase.execute_kw('reseau.sociaux', 'search_read',[[['iduser', '=', token_data.id]],['id','type','lien_profil']])
+        social_media = odooDatabase.execute_kw('reseau.sociaux', 'search_read',[[['iduser', '=', token_data['id']]],['id','type','lien_profil']])
         ready_social_media = []
 
         for social in social_media:
@@ -156,6 +157,8 @@ class AuthentificationController():
         total_fields = len(fields_to_check)
 
         result = get_delegues_for_detailant( full_user['id'],odooDatabase)
+        print ( "importationnnnnnnnnnnnnnnnnnnn")
+        print(full_user)
     
         ready_user = UserData(
             id=full_user.get('id'),
@@ -190,179 +193,238 @@ class AuthentificationController():
         odooDatabase : OdooDatabase = request.app.state.odooDatabase
         print("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz", type(UserLogin))
 
+        bloque = odooDatabase.execute_kw('info.cnx', 'search', [[['telephone', '=', UserLogin.phone],['active', '=', "False"]]])
+
+        if not bloque:
+            raise HTTPException(
+                status_code=422, 
+                detail="detaillant bloquee"
+            )
+
         det = odooDatabase.execute_kw('info.cnx', 'search', [[['telephone', '=', UserLogin.phone]]])
 
         print("detttttttttttttttttttttttttttttttttttttttt",det)
 
         users = None
         if det:
-            users = odooDatabase.execute_kw('info.cnx', 'read', [det], {'fields': ['telephone','password','id','id_user','email','images_magasins_ids']})
+            users = odooDatabase.execute_kw('info.cnx', 'read', [det], {'fields': ['telephone','password','id','id_user','email','images_magasins_ids','state']})
         if not users:
             raise HTTPException(
                 status_code=422, 
                 detail="Numéro de téléphone introuvable"
             )
-        if not Password.check_password(users[0]['password'], password):
+        hashed=Password.get_password_hash(UserLogin.password)
+        print( "tasnimmmmmmmmmmmmmmmmmmmmmmmmmm",hashed,UserLogin.password,users[0]['password'] ,type(UserLogin.password),type(users[0]['password']))
+
+        if not Password.verify_password(UserLogin.password,hashed):
             raise HTTPException(
                 status_code=422, 
                 detail="Mot de passe incorrect"
             )
+
+
+        
+
+        # if not Password.verify_password(UserLogin.password,users[0]['password']):
+        #     raise HTTPException(
+        #         status_code=422, 
+        #         detail="Mot de passe incorrect"
+        #     )
+
         user = users[0]
-        detailant = odooDatabase.execute_kw('res.partner', 'read', [user['id_user'][0]], {'fields': ['code','name','categorie_id', 'commune_id', 'street','code','etoile','nbr_points', 'state_id','new_tlp1','name_magasin']})
-        token = generate_token(User(id=user["id"],telephone=user['telephone'], codeDetaillant=detailant[0]['code']))
-
-        ready_images = []
-        for image_id in users[0]['images_magasins_ids']:
-            image_url = f"{odooDatabase.base_url}/web/image/images.magasins/{image_id}/image"
-            ready_images.append(Image(image_id, image_url))
+        print ( "surrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",user['id_user'][1][0])
 
         
-        social_media = odooDatabase.execute_kw('reseau.sociaux', 'search_read',[[['iduser', '=', users[0]['id']]],['id','type','lien_profil']])
-        ready_social_media = []
 
-        
-        for social in social_media:
-            typeSocialMedia = next((smt for smt in SocialMediaType if smt.value == social['type']), None)
-            ready_social_media.append(SocialMedia(id=social['id'], type=typeSocialMedia, url=social['lien_profil']))
-        
 
-        result = get_delegues_for_detailant(users[0]['id_user'][0] ,odooDatabase)
-        
-        
+        if ( user['state']=='candidate'):
+            detailant = odooDatabase.execute_kw('res.partner', 'read', [user['id_user'][0]], {'fields': ['code','name','categorie_id', 'commune_id', 'street','code','etoile','nbr_points', 'state_id','new_tlp1','name_magasin']})
+            dat=TokenData(id=user["id"],telephone=user['telephone'], codeDetaillant=detailant[0]['code']).dict()
+            print ( "agilitiiiiiiiiiiiiiii",dat)
+            access_token_expires = timedelta(minutes=30)
+            token= TokenTools.generate_token(data=dat,expires_delta=access_token_expires)
+            print ( "ççççççççççççççççççççççççççççççççççççç",token)
 
-        ready_user = UserData(
-            id = users[0]['id_user'][0],
-            nom = detailant[0]['name'],
-            tel = users[0]['telephone'],
-            raisonSociale = detailant[0]['name_magasin'],
-            adresse = detailant[0]['street'],
-            email = users[0]['email'],
-            idDetaillant = detailant[0]['code'],
-            niveauDetaillant = int(detailant[0]['etoile'])-1,
-            pointsDetaillant = detailant[0]['nbr_points'],
-            natureCommerce = detailant[0]['categorie_id'][1] if detailant[0]['categorie_id'] else None,
-            ville = detailant[0]['commune_id'][1] if detailant[0]['commune_id'] else None,
-            wilaya= detailant[0]['state_id'][1] if detailant[0]['state_id'] else None,
-            pourcentageNiveau=80,
-            # pourcentageProfil=int((filled_fields / total_fields) * 100),
-            socialMedia = ready_social_media,
-            images= ready_images,
-            otherTel = detailant[0]['new_tlp1'],
-            delegue =result['delegues']
+            yy=TokenTools.check_token(token)
+            print("jiraaaaaaaaaaa**************************************a",yy)
+
+            return {
+                "status": True,
+                "token": token,
+            }
+
+        else:
+
+            detailant = odooDatabase.execute_kw('res.partner', 'read', [user['id_user'][0]], {'fields': ['code','name','categorie_id', 'commune_id', 'street','code','etoile','nbr_points', 'state_id','new_tlp1','name_magasin']})
+
+            dat=TokenData(id=user["id"],telephone=user['telephone'], codeDetaillant=detailant[0]['code']).dict()
+            print ( "agilitiiiiiiiiiiiiiii",dat)
+            access_token_expires = timedelta(minutes=30)
+            token= TokenTools.generate_token(data=dat,expires_delta=access_token_expires)
+            print ( "ççççççççççççççççççççççççççççççççççççç",token)
+
+            yy=TokenTools.check_token(token)
+            print("jiraaaaaaaaaaa**************************************a",yy)
             
-        )
+            
+            
+            ready_images = []
+            for image_id in users[0]['images_magasins_ids']:
+                image_url = f"{odooDatabase.base_url}/web/image/images.magasins/{image_id}/image"
+                ready_images.append(Image(id=image_id, image=image_url))
+            
+
+            
+            social_media = odooDatabase.execute_kw('reseau.sociaux', 'search_read',[[['iduser', '=', users[0]['id']]],['id','type','lien_profil']])
+            ready_social_media = []
+
+            
+            for social in social_media:
+                typeSocialMedia = next((smt for smt in SocialMediaType if smt.value == social['type']), None)
+                ready_social_media.append(SocialMedia(id=social['id'], type=typeSocialMedia, url=social['lien_profil']))
+            
+
+            result = get_delegues_for_detailant(users[0]['id_user'][0] ,odooDatabase)
+            
+        
+            ready_user = UserData(
+                id = users[0]['id_user'][0],
+                nom = detailant[0].get('name'),
+                tel = users[0].get('telephone'),
+                raisonSociale = detailant[0].get('name_magasin'),
+                adresse = detailant[0].get('street'),
+                email = users[0].get('email'),
+                idDetaillant = detailant[0].get('code'),
+                niveauDetaillant = int(detailant[0].get('etoile'))-1,
+                pointsDetaillant = detailant[0].get('nbr_points'),
+                natureCommerce = detailant[0]['categorie_id'][1] if detailant[0]['categorie_id'] else None,
+                ville = detailant[0]['commune_id'][1] if detailant[0]['commune_id'] else None,
+                wilaya= detailant[0]['state_id'][1] if detailant[0]['state_id'] else None,
+                pourcentageNiveau=80,
+                # pourcentageProfil=int((filled_fields / total_fields) * 100),
+                socialMedia = ready_social_media,
+                images= ready_images,
+                otherTel = detailant[0].get('new_tlp1'),
+                delegue =result.get('delegues')
+                
+            )
+            return {
+                "status": True,
+                "token": token,
+                "data": ready_user.dict()
+            }
+
+
+    
+    @staticmethod # Ready
+    def inscription(request: Request, data: RegisterUser):
+        odooDatabase: OdooDatabase = request.app.state.odooDatabase
+        
+        print ( "biiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii")
+        print( data)
+        # Verifier si le code détaillant existe sur la table res.partner
+        det_id = odooDatabase.execute_kw('res.partner', 'search_read',[[['code', '=', data.codeDet]],['code']])
+        if not det_id:
+            raise HTTPException(
+                status_code=422, 
+                detail="Code détaillant n'existe pas"
+            )
+       
+        # Verifier si le numéro de téléphone est déjà utilisé ou si le code détaillant est déjà associé à un compte
+        det = odooDatabase.execute_kw('info.cnx', 'search_read', [['|',['telephone', '=', data.phone],['id_user', '=', det_id[0]['id']]]])
+        if ( True in [det[i]['telephone'] == data.phone for i in range(len(det))] ):
+            raise HTTPException(
+                status_code=422, 
+                detail="Numéro de téléphone déjà utilisé"
+            )
+        elif ( True in [det[i]['id_user'][0] == det_id[0]['id'] for i in range(len(det))] ):
+            raise HTTPException(
+                status_code=422, 
+                detail="Code détaillant déjà associé à un compte"
+            )
+            
+            
+        # Créer un enregistrement dans la nouvelle table
+        record_mobile_id = create_record_in_new_table(odooDatabase, det_id[0], phone=data.phone)
+        if not record_mobile_id:
+            raise HTTPException(
+                status_code=503,
+                detail="Erreur de connexion avec le serveur, veuillez réessayer"
+            )
         return {
             "status": True,
-            "token": token,
-            "data" : ready_user.get_json()
+            "message": "Votre mot de passe vous a été envoyé par SMS"
         }
 
 
 
-    # @staticmethod # Ready
-    # def inscription(request: Request, data: RegisterUser):
-    #     odooDatabase: OdooDatabase = request.app.state.odooDatabase
-        
-    #     # Verifier si le code détaillant existe sur la table res.partner
-    #     det_id = odooDatabase.execute_kw('res.partner', 'search_read',[[['code', '=', data.codeDet]],['code']])
-    #     if not det_id:
-    #         raise HTTPException(
-    #             status_code=422, 
-    #             detail="Code détaillant n'existe pas"
-    #         )
-        
-    #     # Verifier si le numéro de téléphone est déjà utilisé ou si le code détaillant est déjà associé à un compte
-    #     det = odooDatabase.execute_kw('info.cnx', 'search_read', [['|',['telephone', '=', data.phone],['id_user', '=', det_id[0]['id']]]])
-    #     if ( True in [det[i]['telephone'] == data.phone for i in range(len(det))] ):
-    #         raise HTTPException(
-    #             status_code=422, 
-    #             detail="Numéro de téléphone déjà utilisé"
-    #         )
-    #     elif ( True in [det[i]['id_user'][0] == det_id[0]['id'] for i in range(len(det))] ):
-    #         raise HTTPException(
-    #             status_code=422, 
-    #             detail="Code détaillant déjà associé à un compte"
-    #         )
+    
+    @staticmethod # Ready -- check one case brk
+    def adhesion(request: Request, data : AdhererUser ) :  
+        odooDatabase : OdooDatabase = request.app.state.odooDatabase
+        det = odooDatabase.execute_kw('info.cnx', 'search', [[['telephone', '=', data.phone_compte]]])
+        if det:
+            raise HTTPException(
+                status_code=422,
+                detail="Ce numéro de téléphone est déjà associé à un compte"
+            ) 
+        region_id, pf_id = 13, 6 #Poour les tests brk on verra après kifeh nmappiw
+        vals = {
+            'name': data.name,
+            'categorie_id' : data.categorie_id,
+            'name_magasin': data.name_magasin,
+            'state_id': data.state_id,
+            'country_id': data.country_id,
+            'commune_id': data.commune_id,
+            'phone': data.phone_compte,
+            'region_id': region_id,
+            'pf_id': pf_id,
+            'etoile': 2,    # Hard coded, un detaillant inscrit sera directement au niv 1 
             
-            
-    #     # Créer un enregistrement dans la nouvelle table
-    #     record_mobile_id = create_record_in_new_table(odooDatabase, det_id[0], phone=data.phone)
-    #     if not record_mobile_id:
-    #         raise HTTPException(
-    #             status_code=503,
-    #             detail="Erreur de connexion avec le serveur, veuillez réessayer"
-    #         )
-    #     return {
-    #         "status": True,
-    #         "message": "Votre mot de passe vous a été envoyé par SMS"
-    #     }
+            'company_type': 'company',
+            'nature': [(6, 0, [2])],  # Relation many2many avec res.partner.nature.multiple
+            'user_id': odooDatabase.uid,
+            'commentaires':"TEST API VIA MobileApp"
+        }
+        # Filtrer les valeurs None
+        filtered_vals = remove_none_values(vals)
+        
+        # Créer le nouveau détaillant dans Odoo
+        new_detaillant_id = odooDatabase.execute_kw( 'res.partner', 'create', [filtered_vals])
+        
+        if not new_detaillant_id :
+            raise HTTPException(
+                status_code=503,
+                detail="Erreur de connexion avec le serveur, veuillez réessayer"
+            )
+        
+        #Génération du code détaillant
+        sequence_code = 'res.partner.detaillant'
+        code = odooDatabase.execute_kw('ir.sequence', 'next_by_code', [sequence_code])
+        if code : 
+            odooDatabase.execute_kw('res.partner', 'write', [[new_detaillant_id], {'code': code}])
+        # else:
+        #     # je pense hna supprimer le detaillant et return
+        #     return {
+        #         "status": False,
+        #         "error": "Erreur de connexion au serveur, veuillez réessayer"
+        #     }
 
-    # @staticmethod # Ready -- check one case brk
-    # def adhesion(request: Request, data : AdhererUser ) :  
-    #     odooDatabase : OdooDatabase = request.app.state.odooDatabase
-    #     det = odooDatabase.execute_kw('info.cnx', 'search', [[['telephone', '=', data.phone_compte]]])
-    #     if det:
-    #         raise HTTPException(
-    #             status_code=422,
-    #             detail="Ce numéro de téléphone est déjà associé à un compte"
-    #         ) 
-    #     region_id, pf_id = 13, 6 #Poour les tests brk on verra après kifeh nmappiw
-    #     vals = {
-    #         'name': data.name,
-    #         'categorie_id' : data.categorie_id,
-    #         'name_magasin': data.name_magasin,
-    #         'state_id': data.state_id,
-    #         'country_id': data.country_id,
-    #         'commune_id': data.commune_id,
-    #         'phone': data.phone_compte,
-    #         'region_id': region_id,
-    #         'pf_id': pf_id,
-    #         'etoile': 2,    # Hard coded, un detaillant inscrit sera directement au niv 1 
-            
-    #         'company_type': 'company',
-    #         'nature': [(6, 0, [2])],  # Relation many2many avec res.partner.nature.multiple
-    #         'user_id': odooDatabase.uid,
-    #         'commentaires':"TEST API VIA MobileApp"
-    #     }
-    #     # Filtrer les valeurs None
-    #     filtered_vals = remove_none_values(vals)
+        # Lire les détails du nouveau détaillant créé
+        new_detaillant = odooDatabase.execute_kw('res.partner', 'read', [[new_detaillant_id], ['id']])[0]
         
-    #     # Créer le nouveau détaillant dans Odoo
-    #     new_detaillant_id = odooDatabase.execute_kw( 'res.partner', 'create', [filtered_vals])
-        
-    #     if not new_detaillant_id :
-    #         raise HTTPException(
-    #             status_code=503,
-    #             detail="Erreur de connexion avec le serveur, veuillez réessayer"
-    #         )
-        
-    #     #Génération du code détaillant
-    #     sequence_code = 'res.partner.detaillant'
-    #     code = odooDatabase.execute_kw('ir.sequence', 'next_by_code', [sequence_code])
-    #     if code : 
-    #         odooDatabase.execute_kw('res.partner', 'write', [[new_detaillant_id], {'code': code}])
-    #     # else:
-    #     #     # je pense hna supprimer le detaillant et return
-    #     #     return {
-    #     #         "status": False,
-    #     #         "error": "Erreur de connexion au serveur, veuillez réessayer"
-    #     #     }
+        # Créer l'enregistrement dans la nouvelle table
+        detNvlTable_id = create_record_in_new_table(odooDatabase, new_detaillant, phone=data.phone_compte)
 
-    #     # Lire les détails du nouveau détaillant créé
-    #     new_detaillant = odooDatabase.execute_kw('res.partner', 'read', [[new_detaillant_id], ['id']])[0]
-        
-    #     # Créer l'enregistrement dans la nouvelle table
-    #     detNvlTable_id = create_record_in_new_table(odooDatabase, new_detaillant, phone=data.phone_compte)
-
-    #     if not detNvlTable_id:
-    #         raise HTTPException(
-    #             status_code=503,
-    #             detail="Erreur de connexion avec le serveur, veuillez réessayer"
-    #         )
-    #     return {
-    #         "status": True,
-    #         "message": "Votre mot de passe et votre code détaillant vous ont été envoyé par SMS"
-    #     }
+        if not detNvlTable_id:
+            raise HTTPException(
+                status_code=503,
+                detail="Erreur de connexion avec le serveur, veuillez réessayer"
+            )
+        return {
+            "status": True,
+            "message": "Votre mot de passe et votre code détaillant vous ont été envoyé par SMS"
+        }
 
     # @staticmethod # Ready
     # def motDePasseOublie(request: Request, data : ForgotPwd) :

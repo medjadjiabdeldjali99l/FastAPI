@@ -1,6 +1,5 @@
 from os import getenv
 from dotenv import load_dotenv
-from Models.TokenData import TokenData
 from typing import Annotated
 from fastapi import APIRouter, Request ,Query ,Depends ,HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -47,9 +46,7 @@ class TokenTools:
             # print("=========================================================", payload)
             if payload is None:
                 raise False
-            token_data = TokenData(**payload)
         except InvalidTokenError:
             raise credentials_exception
-        print ("hada typeee ta3 playe load", type(token_data))
-        return token_data
+        return payload
 

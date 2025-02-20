@@ -22,13 +22,13 @@ async def me(request : Request, token:Annotated[str, Depends(oauth2_scheme)]):
 async def login(request : Request , UserLogin:Userlogin ):
     return AuthentificationController.login(request=request ,UserLogin=UserLogin)
 
-# @router.post("/inscription")
-# async def inscription(user:RegisterUser,request: Request ):
-#     return AuthentificationController.inscription(request=request,data=user)
+@router.post("/inscription")
+async def inscription(request: Request ,user:RegisterUser ):
+    return AuthentificationController.inscription(request=request,data=user)
 
-# @router.post("/adhesion")
-# async def adhesion(request: Request, user : AdhererUser):
-#     return AuthentificationController.adhesion(request=request, data=user)
+@router.post("/adhesion")
+async def adhesion(request: Request, user : AdhererUser):
+    return AuthentificationController.adhesion(request=request, data=user)
 
 # @router.post("/mot-de-passe-oublie")
 # async def motDePasseOublie (request: Request, data : ForgotPwd):
