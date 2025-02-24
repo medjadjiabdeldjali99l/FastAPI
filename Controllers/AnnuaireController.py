@@ -40,13 +40,13 @@ class AnnuaireController():
                 detail={"status": False, "error": "Tokennnnnnnnnnnnnnnnnnnnnnnnnnnn Invalide"}
             )
         
-        dat={"id":1,"telephone":"0778240169", "codeDetaillant":"PDD012569"}
-        access_token_expires = timedelta(minutes=30)
-        tt= TokenTools.generate_token(data=dat,expires_delta=access_token_expires)
-        print ( "ççççççççççççççççççççççççççççççççççççç",tt)
+        # dat={"id":1,"telephone":"0778240169", "state":"allo alllo"}
+        # access_token_expires = timedelta(minutes=30)
+        # tt= TokenTools.generate_token(data=dat,expires_delta=access_token_expires)
+        # print ( "ççççççççççççççççççççççççççççççççççççç",tt)
 
-        yy=TokenTools.check_token(tt)
-        print("jiraaaaaaaaaaaa",yy)
+        # yy=TokenTools.check_token(tt)
+        # print("jiraaaaaaaaaaaa",yy)
         
         if fonction == 'sup':
             sup_group = odooDatabase.execute_kw(

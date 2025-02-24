@@ -1,4 +1,6 @@
 from passlib.context import CryptContext
+import string
+import random
 
 # Définition du contexte de hachage
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -16,7 +18,20 @@ class Password:
         """Retourne le hachage sécurisé du mot de passe."""
         return pwd_context.hash(password)
 
-# Exemple d'utilisation
-# hashed = Password.get_password_hash("monmotdepasse")
-# print(Password.verify_password("monmotdepasse", hashed))  # True
-# print(Password.verify_password("mauvaismotdepasse", hashed))  # False
+
+
+
+
+    @staticmethod
+        
+    def get_random_string( length: int ):
+
+        letters = string.ascii_lowercase
+        result_str = ''.join(random.choice(letters) for i in range(length))
+        
+        return result_str
+
+    # Exemple d'utilisation
+    # hashed = Password.get_password_hash("monmotdepasse")
+    # print(Password.verify_password("monmotdepasse", hashed))  # True
+    # print(Password.verify_password("mauvaismotdepasse", hashed))  # False

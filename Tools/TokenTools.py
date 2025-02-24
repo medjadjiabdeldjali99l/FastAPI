@@ -41,9 +41,8 @@ class TokenTools:
     def check_token(token: Annotated[str, Depends(oauth2_scheme)]):
               
         try:
-            # print(" had 2", SECRET_KEY,ALGORITHM)
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-            # print("=========================================================", payload)
+            print("=========================================================", payload)
             if payload is None:
                 raise False
         except InvalidTokenError:

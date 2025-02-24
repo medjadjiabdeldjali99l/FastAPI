@@ -12,9 +12,9 @@ class RegisterUser(BaseModel):
 class AdhererUser(BaseModel):  
     name: str
     name_magasin: str = None    # Raison sociale
-    categorie_id : int  # Mapping ids hardcoded in front par ex  categorie_id=1 -> quicallerie gen...
-    state_id: int
-    commune_id: int
+    categorie_id : Optional[int] = None # Mapping ids hardcoded in front par ex  categorie_id=1 -> quicallerie gen...
+    state_id: Optional[int] = None
+    commune_id: Optional[int] = None
     phone_compte: str
     country_id: Optional[int] = 62 # Liste countries avec ids (  id Algerie = 62)
     

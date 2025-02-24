@@ -25,3 +25,16 @@ class UserData(BaseModel):
     images: List[Image] = []
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class CondidateData(BaseModel):
+    id: Optional[int] = None
+    nom: Optional[str] = None
+    tel: Optional[str] = None
+    natureCommerce: Optional[str] = None
+    ville: Optional[str] = None
+    wilaya: Optional[str] = None
+    raisonSociale: Optional[str] = None
+    etat : Optional[str] = None
+    email: Optional[str] = None
+
