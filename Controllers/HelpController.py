@@ -5,10 +5,10 @@ from Tools.TokenTools import TokenTools
 import jwt
 
 
-class WilayaController():
+class HelpController():
     
     @staticmethod # Ready
-    def get_all_wilaya( request : Request, token : str ,codeCountryOdoo:str):
+    def get_help( request : Request, token : str ):
         odooDatabase : OdooDatabase = request.app.state.odooDatabase
         user = TokenTools.check_token(token)
         print("userrrrrrrrrrrrrrrrrrrrrr",user)
@@ -18,23 +18,25 @@ class WilayaController():
                 detail={"status": False, "error": "Tokennnnnnnnnnnnnnnnnnnnnnnnnnnn Invalide"}
             )
 
-        idCountry = odooDatabase.execute_kw(
-            'res.country',  # Modèle Odoo
-            'search_read',  # Méthode utilisée pour la recherche et la lecture
-            [[['code', '=', codeCountryOdoo]]],
-            {'fields': ['id']} 
-        )
-        print( "id countryyyyyy===============================",idCountry)
 
-        wilaya = odooDatabase.execute_kw(
-            'res.country.state',  # Modèle Odoo
+
+        faq = odooDatabase.execute_kw(
+            'faq.question',  # Modèle Odoo
             'search_read',  # Méthode utilisée pour la recherche et la lecture
-            [[['country_id', '=',idCountry[0]['id'] ]]],
-            {'fields': ['id','name','code','pf_ids']} 
+            [[]],
+            {'fields': ['question','answer']} 
         )
+        print( "FAQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ===============================",faq)
+
+        # wilaya = odooDatabase.execute_kw(
+        #     'res.country.state',  # Modèle Odoo
+        #     'search_read',  # Méthode utilisée pour la recherche et la lecture
+        #     [[['country_id', '=',idCountry[0]['id'] ]]],
+        #     {'fields': ['id','name','code','pf_ids']} 
+        # )
 
         try:    
-            return wilaya
+            return faq
         except HTTPException as e:
             raise e
         except Exception as e:

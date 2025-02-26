@@ -35,6 +35,7 @@ class CondidateData(BaseModel):
     ville: Optional[str] = None
     wilaya: Optional[str] = None
     raisonSociale: Optional[str] = None
-    etat : Optional[str] = None
+    etatCondidat : Optional[str] = None
     email: Optional[str] = None
+    adresse: Optional[str] = None
 

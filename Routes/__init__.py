@@ -10,6 +10,8 @@ from Routes.HistoriqueNiveau import router as  HistoriqueNiveauRouter
 from Routes.Catalogue import router as  CatalogueRouter
 from Routes.Articles import router as  ArticlesRouter
 from Routes.Wilaya import router as  WilayasRouter
+from Routes.HelpCenter import router as HelpCenterRouter
+
 
 router = APIRouter()
 
@@ -24,3 +26,4 @@ router.include_router(CatalogueRouter,tags=["catalogs"],prefix="/catalogs")
 router.include_router(ArticlesRouter,tags=["Articles"],prefix="/articles")
 router.include_router(WilayasRouter,tags=["Wilaya"],prefix="/wilaya")
 router.include_router(DiscoverRouter,tags=["Discover"],prefix="/discover")
+router.include_router(HelpCenterRouter,tags=["HelpCentre"],prefix="/help")

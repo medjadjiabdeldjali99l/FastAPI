@@ -161,66 +161,96 @@ class AuthentificationController():
 
         print("=========================================auth====",token_data)
 
-
-
+        etatDeCnx = token_data['state']
         user_1 = odooDatabase.execute_kw('info.cnx', 'read', [token_data['id']])
-        user_2 = odooDatabase.execute_kw('res.partner', 'read', [user_1[0]['id_user'][0]], {'fields': ['id','name', 'name_magasin', 'categorie_id', 'commune_id', 'street','code','etoile','nbr_points', 'state_id','new_tlp1']})	
-        full_user = {**user_1[0],**user_2[0]}
-        social_media = odooDatabase.execute_kw('reseau.sociaux', 'search_read',[[['iduser', '=', token_data['id']]],['id','type','lien_profil']])
-        ready_social_media = []
-
-        for social in social_media:
-            typeSocialMedia = next((smt for smt in SocialMediaType if smt.value == social['type']), None)
-            print("asssssssssssssssssssssssssss",typeSocialMedia)
-            ready_social_media.append(SocialMedia(id=social['id'], type=typeSocialMedia, url=social['lien_profil']))
-        print ( " faussssssssssssssssse alerte")
-
-        ready_images = []
-        for image_id in full_user['images_magasins_ids']:
-            image_url = f"{odooDatabase.base_url}/web/image/images.magasins/{image_id}/image"
-            ready_images.append(Image(id=image_id, image=image_url))
+        print ( "lalkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk===",user_1)
+        if etatDeCnx == 'candidate' :
+            user_2 = odooDatabase.execute_kw('partner.candidate', 'read', [user_1[0]['candidate_id'][0]], {'fields': ['name','categorie_id', 'commune_id', 'state_id','name_magasin','state','email','phone']})	
         
-            # Liste des champs à vérifier
-        print( "farinaaaaaaaaaaaaaaaaaaaaaaaaa",ready_images)
-        fields_to_check = [
-            'id','name','telephone', 'name_magasin', 'street', 'email',
-            'categorie_id', 'state_id', 'commune_id', 'images_magasins_ids', 'reseau_sociaux_ids','new_tlp1'] #Ajouter fields localisation
+            print ( " c un condidat ")
+
+            ready_user = CondidateData(
+                id = user_2[0].get('id'),
+                nom = user_2[0].get('name'),
+                tel = user_2[0].get('phone'),
+                raisonSociale = user_2[0].get('name_magasin') if user_2[0].get('name_magasin') else None ,
+                adresse = user_2[0].get('street') if user_2[0].get('street') else None,
+                email = user_2[0].get('email') if user_2[0].get('email') else None ,
+                natureCommerce = user_2[0]['categorie_id'][1] if user_2[0]['categorie_id'] else None,
+                ville = user_2[0]['commune_id'][1] if user_2[0]['commune_id'] else None,
+                wilaya= user_2[0]['state_id'][1] if user_2[0]['state_id'] else None,
+                etatCondidat = etatDeCnx if etatDeCnx else None
+                
+            )
+
+            return {
+                "status" : True,
+                "token" : token,
+                "data": ready_user.dict() 
+            }
+        elif etatDeCnx == 'partner' :
+            print ( " c un partner ")
+
+
+
+        
+            user_2 = odooDatabase.execute_kw('res.partner', 'read', [user_1[0]['partner_id'][0]], {'fields': ['id','name', 'name_magasin', 'categorie_id', 'commune_id', 'street','code','etoile','nbr_points', 'state_id','new_tlp1']})	
+            full_user = {**user_1[0],**user_2[0]}
+            social_media = odooDatabase.execute_kw('reseau.sociaux', 'search_read',[[['iduser', '=', token_data['id']]],['id','type','lien_profil']])
+            ready_social_media = []
+
+            for social in social_media:
+                typeSocialMedia = next((smt for smt in SocialMediaType if smt.value == social['type']), None)
+                print("asssssssssssssssssssssssssss",typeSocialMedia)
+                ready_social_media.append(SocialMedia(id=social['id'], type=typeSocialMedia, url=social['lien_profil']))
+            print ( " faussssssssssssssssse alerte")
+
+            ready_images = []
+            for image_id in full_user['images_magasins_ids']:
+                image_url = f"{odooDatabase.base_url}/web/image/images.magasins/{image_id}/image"
+                ready_images.append(Image(id=image_id, image=image_url))
             
-        # Calcul du pourcentage de profil rempli
-        filled_fields = sum(1 for field in fields_to_check if full_user.get(field))
+                # Liste des champs à vérifier
+            print( "farinaaaaaaaaaaaaaaaaaaaaaaaaa",ready_images)
+            fields_to_check = [
+                'id','name','telephone', 'name_magasin', 'street', 'email',
+                'categorie_id', 'state_id', 'commune_id', 'images_magasins_ids', 'reseau_sociaux_ids','new_tlp1'] #Ajouter fields localisation
+                
+            # Calcul du pourcentage de profil rempli
+            filled_fields = sum(1 for field in fields_to_check if full_user.get(field))
+            
+            total_fields = len(fields_to_check)
+
+            result = get_delegues_for_detailant( full_user['id'],odooDatabase)
+            print ( "importationnnnnnnnnnnnnnnnnnnn")
+            print(full_user)
         
-        total_fields = len(fields_to_check)
-
-        result = get_delegues_for_detailant( full_user['id'],odooDatabase)
-        print ( "importationnnnnnnnnnnnnnnnnnnn")
-        print(full_user)
-    
-        ready_user = UserData(
-            id=full_user.get('id'),
-            nom=full_user.get('name'),
-            tel=full_user.get('telephone'),
-            raisonSociale=full_user.get('name_magasin'),
-            adresse=full_user.get('street'),
-            email=full_user.get('email'),
-            idDetaillant=full_user.get('code'),
-            niveauDetaillant=int(full_user.get('etoile', 0)) - 1 if full_user.get('etoile') else None,
-            pointsDetaillant=int(full_user.get('nbr_points', 0)) if full_user.get('nbr_points') else None,
-            natureCommerce=full_user.get('categorie_id', [None, None])[1],
-            ville=full_user.get('commune_id', [None, None])[1],
-            wilaya=full_user.get('state_id', [None, None])[1],
-            pourcentageNiveau=80,
-            pourcentageProfil=int((filled_fields / total_fields) * 100) if total_fields > 0 else 0,
-            socialMedia=ready_social_media,
-            images=ready_images,
-            otherTel=full_user.get('new_tlp1'),
-            delegue=result.get('delegues')
-        )
+            ready_user = UserData(
+                id=full_user.get('id'),
+                nom=full_user.get('name') if full_user.get('name') else None,
+                tel=full_user.get('telephone') if full_user.get('telephone') else None,
+                raisonSociale=full_user.get('name_magasin') if full_user.get('name_magasin') else None,
+                adresse=full_user.get('street') if full_user.get('street') else None  ,
+                email=full_user.get('email') if full_user.get('email') else None ,
+                idDetaillant=full_user.get('code') if full_user.get('code') else None ,
+                niveauDetaillant=int(full_user.get('etoile', 0)) - 1 if full_user.get('etoile') else None,
+                pointsDetaillant=int(full_user.get('nbr_points', 0)) if full_user.get('nbr_points') else None,
+                natureCommerce=full_user.get('categorie_id', [None, None])[1],
+                ville=full_user.get('commune_id', [None, None])[1],
+                wilaya=full_user.get('state_id', [None, None])[1],
+                pourcentageNiveau=80,
+                pourcentageProfil=int((filled_fields / total_fields) * 100) if total_fields > 0 else 0,
+                socialMedia=ready_social_media,
+                images=ready_images,
+                otherTel=full_user.get('new_tlp1') if full_user.get('new_tlp1') else None ,
+                delegue=result.get('delegues') if result.get('delegues') else None
+            )
 
 
-        return {
-            "status": True,
-            "data": ready_user.dict()
-        }
+            return {
+                "status": True,
+                "data": ready_user.dict()
+            }
 
         
     @staticmethod # Ready
@@ -269,7 +299,6 @@ class AuthentificationController():
         user = users[0]
         print ("okkkkkkkkkkkkkkkkkk==========================",user)
         
-        # print ( "surrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",user['id_user'][1][0])
 
         
 
@@ -296,6 +325,7 @@ class AuthentificationController():
                 natureCommerce = Condidat[0]['categorie_id'][1] if Condidat[0]['categorie_id'] else None,
                 ville = Condidat[0]['commune_id'][1] if Condidat[0]['commune_id'] else None,
                 wilaya= Condidat[0]['state_id'][1] if Condidat[0]['state_id'] else None,
+                etatCondidat = user['state'] if user['state'] else None
                 
             )
 
