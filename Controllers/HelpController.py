@@ -1,6 +1,7 @@
 from fastapi import Request ,HTTPException
 from database import OdooDatabase
-from Models import Token
+from Models import Token 
+from Models.HelpCenter import *
 from Tools.TokenTools import TokenTools
 import jwt
 
@@ -20,23 +21,36 @@ class HelpController():
 
 
 
-        faq = odooDatabase.execute_kw(
+        FAQ = odooDatabase.execute_kw(
             'faq.question',  # Modèle Odoo
             'search_read',  # Méthode utilisée pour la recherche et la lecture
             [[]],
             {'fields': ['question','answer']} 
         )
-        print( "FAQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ===============================",faq)
+        print( "FAQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ===============================",FAQ)
 
-        # wilaya = odooDatabase.execute_kw(
-        #     'res.country.state',  # Modèle Odoo
-        #     'search_read',  # Méthode utilisée pour la recherche et la lecture
-        #     [[['country_id', '=',idCountry[0]['id'] ]]],
-        #     {'fields': ['id','name','code','pf_ids']} 
-        # )
+        objetTemplate = odooDatabase.execute_kw(
+            'help.topic',  # Modèle Odoo
+            'search_read',  # Méthode utilisée pour la recherche et la lecture
+            [[ ]],
+            {'fields': ['name']} 
+        )
+        objetTemplateData=[item['name'] for item in objetTemplate]
+        question=[item['question'] for item in FAQ]
+        answer=[item['answer'] for item in FAQ]
+        print("helptopiccccccccccccccccc",objetTemplateData,question,answer)
+
+        helpCenterData=HelpCenter(
+            faqQuestion =question if question else None,
+            faqAnswer =answer if answer else None,
+            objet =objetTemplateData if objetTemplateData else None
+        )
+
+        
+
 
         try:    
-            return faq
+            return helpCenterData
         except HTTPException as e:
             raise e
         except Exception as e:
@@ -44,5 +58,33 @@ class HelpController():
 
 
 
+    @staticmethod # Ready
+    def SendEmailDetallaint(request: Request, message:str,idDetaillant:int):  
+        odooDatabase : OdooDatabase = request.app.state.odooDatabase
+
+        print ( message,idDetaillant,'"""""""""""""""""""""""""""""""')
+
+        nvlTableVals = {
+            "partner_id": idDetaillant,
+            "topic_id": 1,
+            "message": message.message,
+        }
+        
+        # Créer l'enregistrement dans info.cnx
+        detNvlTable_id = odooDatabase.execute_kw('help.request', 'create', [nvlTableVals])
+        if not detNvlTable_id:
+            raise HTTPException(
+                    status_code=401,  
+                    detail={"status": False, "error": "Erreur de création dans la nouvelle ligne dans la table "}
+                )
+        
+
+
+        return {
+                "status" : True,
+                "message": "succes"
+        }
+
+        
 
    

@@ -11,6 +11,7 @@ from Models.SocialMedia import SocialMedia, SocialMediaType
 import bcrypt
 
 
+from Tools import historiqueConnexionAndActions
 from Models.UserConnexion import *
 from Models import Token
 from Tools.TokenTools import TokenTools
@@ -298,8 +299,10 @@ class AuthentificationController():
 
         user = users[0]
         print ("okkkkkkkkkkkkkkkkkk==========================",user)
-        
 
+        
+        bb=historiqueConnexionAndActions(True)
+        print( "utilsqsssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",bb)
         
 
 
