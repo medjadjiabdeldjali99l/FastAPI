@@ -27,6 +27,7 @@ class HelpController():
             [[]],
             {'fields': ['question','answer']} 
         )
+
         print( "FAQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ===============================",FAQ)
 
         objetTemplate = odooDatabase.execute_kw(
@@ -35,15 +36,16 @@ class HelpController():
             [[ ]],
             {'fields': ['name']} 
         )
-        objetTemplateData=[item['name'] for item in objetTemplate]
-        question=[item['question'] for item in FAQ]
-        answer=[item['answer'] for item in FAQ]
-        print("helptopiccccccccccccccccc",objetTemplateData,question,answer)
+        print("cadavrrrrrrrrrrrrrrrrrrrrrrrr",objetTemplate)
+        print( " la saissonnnnnnnnnnnnnnnnnnnnnnn",FAQ)
+
+
+
+
 
         helpCenterData=HelpCenter(
-            faqQuestion =question if question else None,
-            faqAnswer =answer if answer else None,
-            objet =objetTemplateData if objetTemplateData else None
+            objetEmail =objetTemplate if objetTemplate else None,
+            Faq = FAQ if FAQ else None
         )
 
         
@@ -59,16 +61,17 @@ class HelpController():
 
 
     @staticmethod # Ready
-    def SendEmailDetallaint(request: Request, message:str,idDetaillant:int):  
+    def SendEmailDetallaint(request: Request, message : str,idDetaillant : int,idTopic : int):  
         odooDatabase : OdooDatabase = request.app.state.odooDatabase
 
-        print ( message,idDetaillant,'"""""""""""""""""""""""""""""""')
+        print ( message,idDetaillant,idTopic,'"""""""""""""""""""""""""""""""')
 
         nvlTableVals = {
             "partner_id": idDetaillant,
-            "topic_id": 1,
-            "message": message.message,
+            "topic_id": idTopic , #hardcodeddd 
+            "message": message.content,
         }
+        print("tramwaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaayyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy")
         
         # Créer l'enregistrement dans info.cnx
         detNvlTable_id = odooDatabase.execute_kw('help.request', 'create', [nvlTableVals])

@@ -21,7 +21,7 @@ import jwt
 
 
 from datetime import datetime, timedelta, timezone
-
+from passlib.exc import UnknownHashError
 
 
 DELEGUE_GROUP_XML_ID="crm_plv.group_plvp_commercial"
@@ -244,7 +244,9 @@ class AuthentificationController():
                 socialMedia=ready_social_media,
                 images=ready_images,
                 otherTel=full_user.get('new_tlp1') if full_user.get('new_tlp1') else None ,
-                delegue=result.get('delegues') if result.get('delegues') else None
+                delegue=result.get('delegues') if result.get('delegues') else None,
+                etatCondidat = etatDeCnx if etatDeCnx else None
+
             )
 
 
@@ -291,10 +293,16 @@ class AuthentificationController():
 
         
 
-        if not Password.verify_password(UserLogin.password,users[0]['password']):
+        try:
+            if not Password.verify_password(UserLogin.password, users[0]['password']):
+                raise HTTPException(
+                    status_code=422, 
+                    detail="Mot de passe incorrect"
+                )
+        except UnknownHashError:
             raise HTTPException(
-                status_code=422, 
-                detail="Mot de passe incorrect"
+                status_code=400, 
+                detail="Le format du mot de passe est invalide ou bien le hachage est mal fait"
             )
 
         user = users[0]
@@ -609,25 +617,74 @@ class AuthentificationController():
 
 
 
-    # @staticmethod # Ready
-    # def motDePasseOublie(request: Request, data : ForgotPwd) :
-    #     odooDatabase : OdooDatabase = request.app.state.odooDatabase
-    #     det_id = odooDatabase.execute_kw('info.cnx','search',[[['telephone', '=', data.phone]]])    
-    #     if not det_id : 
-    #         raise HTTPException(
-    #             status_code=422,
-    #             detail="Numéro de téléphone introuvable"
-    #         )
-        
-    #     #Génerer un nv mdp
-    #     plain_password = Password.generate_password()
-    #     hashed_password = Password.hash_password(plain_password)
-    #     odooDatabase.execute_kw('info.cnx', 'write', [det_id, {'password': hashed_password}])
-        
-    #     # Envoyer le nv mdp par SMS
+    @staticmethod # Ready
+    def motDePasseOublie(request: Request, data : ForgotPwd) :
+        odooDatabase : OdooDatabase = request.app.state.odooDatabase
 
-    #     return {
-    #         "status": True,
-    #         "message": "Votre nouveau mot de passe vous a été envoyé par SMS"
-    #     }
+        # Step 1: Find the requesting user in Odoo (info.cnx)
+        user = odooDatabase.execute_kw( "info.cnx", "search_read",
+                                [[["telephone", "=", data.phone]]], {"fields": ["id", "login", "telephone"]})
+
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        print( user,'lahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh')
+
+        info_cnx_id = user[0]["id"]
+
+        # Step 2: Get `res_model_id` for `info.cnx`
+        model_ids = odooDatabase.execute_kw("ir.model", "search_read",
+                                    [[["model", "=", "info.cnx"]]], {"fields": ["id"]})
+
+        res_model_id = model_ids[0]["id"] if model_ids else None
+
+        if not res_model_id:
+            raise HTTPException(status_code=400, detail="No valid model found in Odoo.")
+
+        # Step 3: Get `activity_type_id` (default activity type)
+        activity_type_ids = odooDatabase.execute_kw("mail.activity.type", "search_read",
+                                            [[["category", "=", "default"]]], {"fields": ["id"]})
+        activity_type_id = activity_type_ids[0]["id"] if activity_type_ids else None
+
+        if not activity_type_id:
+            raise HTTPException(status_code=400, detail="No valid activity type found in Odoo.")
+
+        # Step 4: Get ERP Manager Group ID using `ir.model.data`
+        group_data = odooDatabase.execute_kw("ir.model.data", "search_read",
+                                    [[["module", "=", "base"], ["name", "=", "group_erp_manager"]]],
+                                    {"fields": ["res_id"]})
+
+        if not group_data:
+            raise HTTPException(status_code=404, detail="ERP Manager group not found")
+
+        group_id = group_data[0]["res_id"]  # Extract actual group ID
+
+        # Step 5: Get All Users in the ERP Manager Group
+        erp_managers = odooDatabase.execute_kw("res.users", "search_read",
+                                        [[["groups_id", "in", [group_id]]]], {"fields": ["id", "email", "name"]})
+
+        if not erp_managers:
+            raise HTTPException(status_code=400, detail="No ERP managers found in the group.")
+
+        # Step 7: Create an Activity in Odoo for All ERP Managers
+        for manager in erp_managers:
+            odooDatabase.execute_kw("mail.activity", "create", [{
+                "res_model_id": res_model_id,
+                "res_id": info_cnx_id,
+                "activity_type_id": activity_type_id,
+                "summary": f"Demande de réinitialisation du mot de passe ({user[0]['login']})",
+                "note": f"""
+                    <p><b>Utilisateur :</b> {user[0]['login']}<br>
+                    <b>Téléphone :</b> {user[0]['telephone']}<br>
+                    <b>Action requise :</b> Générer un nouveau mot de passe et l'envoyer.</p>
+                """,
+                "user_id": manager["id"],
+            }])
+        
+
+        return {
+            "status": True,
+            "message": "Votre nouveau mot de passe vous a été envoyé par SMS"
+        }
+
         

@@ -23,6 +23,7 @@ class UserData(BaseModel):
     delegue: Optional[list] = None
     socialMedia: List[SocialMedia] = []
     images: List[Image] = []
+    etatCondidat: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 

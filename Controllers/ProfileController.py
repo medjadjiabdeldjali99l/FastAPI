@@ -101,8 +101,8 @@ class ProfileController():
         user_id = token_data['id']
         # print( user_id)
         # Retrieve user data from info.cnx
-        users = odooDatabase.execute_kw('info.cnx', 'read', [[user_id]], {'fields': ['id_user', 'id']})
-        # print(users)
+        users = odooDatabase.execute_kw('info.cnx', 'read', [[user_id]], {'fields': ['state','partner_id','candidate_id', 'id']})
+        print("updatttttttttttttttttttttttttttttttttttttttt",users)
         if not users:
             # print("user false")
             raise HTTPException(
@@ -134,11 +134,15 @@ class ProfileController():
         # if data.localisation is not None:
         #     update_data_partner['localisation'] = data.localisation
         if update_data_partner:
-            if 'id_user' in user and user['id_user']:
-                # print('id_user' ,user)
-                # Update res.partner
-                odooDatabase.execute_kw('res.partner', 'write', [user['id_user'][0], update_data_partner])
-        
+            print ( "bismalahiiiiiiiiiiiiiiiiiiiiiii",user)
+            if user['state']=='partner':
+
+                if 'partner_id' in user and user['partner_id']:
+
+                    odooDatabase.execute_kw('res.partner', 'write', [user['partner_id'][0], update_data_partner])
+            if user['state']=='candidate':
+                pass
+
         return {
             "status": True,
             "message": "Profile updated successfully"

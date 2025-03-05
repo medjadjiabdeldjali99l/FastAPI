@@ -30,6 +30,7 @@ async def inscription(request: Request ,user:RegisterUser ):
 async def adhesion(request: Request, user : AdhererUser):
     return AuthentificationController.adhesion(request=request, data=user)
 
-# @router.post("/mot-de-passe-oublie")
-# async def motDePasseOublie (request: Request, data : ForgotPwd):
-#     return AuthentificationController.motDePasseOublie(request=request,data=data)
+
+@router.post("/mot_de_passe_oublie")
+async def motDePasseOublie (request: Request, data : ForgotPwd):
+    return AuthentificationController.motDePasseOublie(request=request,data=data)

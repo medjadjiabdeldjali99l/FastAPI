@@ -15,7 +15,7 @@ async def help_centre(request : Request ,token:Annotated[str, Depends(oauth2_sch
 
 
 @router.post("/send_email")
-async def sendEmail(request : Request , message:SendEmail,idDetaillant: int = Query(None, description="L'id de detaillant doit être un entier") ):
-    return HelpController.SendEmailDetallaint(request=request , message =message ,idDetaillant=idDetaillant)
+async def sendEmail(request : Request , content:SendEmail,idDetaillant: int = Query(None, description="L'id de detaillant doit être un entier"),idTopic: int = Query(None, description="L'id de Topic doit être un entier") ):
+    return HelpController.SendEmailDetallaint(request=request , message =content ,idDetaillant=idDetaillant ,idTopic=idTopic)
 
 
