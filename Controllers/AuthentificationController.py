@@ -399,7 +399,8 @@ class AuthentificationController():
                 socialMedia = ready_social_media,
                 images= ready_images,
                 otherTel = detailant[0].get('new_tlp1') if detailant[0].get('new_tlp1') else None ,
-                delegue =result.get('delegues')
+                delegue =result.get('delegues'),
+                etatCondidat=user['state'] if user['state'] else None
                 
             )
             return {
