@@ -47,7 +47,7 @@ class ArticlesController():
             'product.template',  # Modèle Odoo
             'search_read',  # Méthode utilisée pour la recherche et la lecture
             [domain], 
-            {'fields': ['id','name','default_code','list_price','categ_id','product_score','paint_type','surface_type']} 
+            {'fields': ['id','name','default_code','list_price','categ_id','product_score','paint_type','surface_type','image_1920']} 
         )
         if product:
             print( "samyyyyyyyyyyyyyyyyy=================================================",product[0])
@@ -61,7 +61,8 @@ class ArticlesController():
                 category=i['categ_id'][1] if i['categ_id'] else None,
                 typeSurface =i['surface_type'][1] if i['surface_type'] else None,
                 typePeinture=i['paint_type'][1] if i['paint_type'] else None,
-                etoiles=int(i['product_score'] if i['product_score'] else 1 )
+                etoiles=int(i['product_score'] if i['product_score'] else 1 ),
+                image = i['image_1920'] if i['image_1920'] else None 
             )
             for i in product
         ]

@@ -257,7 +257,11 @@ class AnnuaireController():
                     )
                     print(wilaya)
                     print ( wilaya[0]['pf_ids'])
+                    
+
+                    
                     domain.append(('pf_ids','in',wilaya[0]['pf_ids'][0]))
+                    
                     print(domain)
 
 

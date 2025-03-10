@@ -9,6 +9,7 @@ class ProductsData(BaseModel):
     typeSurface : str |None = None
     typePeinture : str |None = None
     etoiles : int | None = None
+    image : str | None = None
 
 
     class Config:

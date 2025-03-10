@@ -236,9 +236,9 @@ class AuthentificationController():
                 idDetaillant=full_user.get('code') if full_user.get('code') else None ,
                 niveauDetaillant=int(full_user.get('etoile', 0)) - 1 if full_user.get('etoile') else None,
                 pointsDetaillant=int(full_user.get('nbr_points', 0)) if full_user.get('nbr_points') else None,
-                natureCommerce=full_user.get('categorie_id', [None, None])[1],
-                ville=full_user.get('commune_id', [None, None])[1],
-                wilaya=full_user.get('state_id', [None, None])[1],
+                natureCommerce=full_user.get('categorie_id', [None, None])[1] if full_user.get('categorie_id') else None,
+                ville = full_user.get('commune_id', [None, None])[1] if full_user.get('commune_id') else None,
+                wilaya=full_user.get('state_id', [None, None])[1] if full_user.get('state_id') else None,
                 pourcentageNiveau=80,
                 pourcentageProfil=int((filled_fields / total_fields) * 100) if total_fields > 0 else 0,
                 socialMedia=ready_social_media,
@@ -290,7 +290,7 @@ class AuthentificationController():
         #         detail="Mot de passe incorrect"
         #     )
 
-
+        
         
 
         try:

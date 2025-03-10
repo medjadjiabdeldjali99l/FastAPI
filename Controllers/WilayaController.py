@@ -8,15 +8,15 @@ import jwt
 class WilayaController():
     
     @staticmethod # Ready
-    def get_all_wilaya( request : Request, token : str ,codeCountryOdoo:str):
+    def get_all_wilaya( request : Request, codeCountryOdoo:str):
         odooDatabase : OdooDatabase = request.app.state.odooDatabase
-        user = TokenTools.check_token(token)
-        print("userrrrrrrrrrrrrrrrrrrrrr",user)
-        if not user : 
-            raise HTTPException(
-                status_code=401,  
-                detail={"status": False, "error": "Tokennnnnnnnnnnnnnnnnnnnnnnnnnnn Invalide"}
-            )
+        # user = TokenTools.check_token(token)
+        # print("userrrrrrrrrrrrrrrrrrrrrr",user)
+        # if not user : 
+        #     raise HTTPException(
+        #         status_code=401,  
+        #         detail={"status": False, "error": "Tokennnnnnnnnnnnnnnnnnnnnnnnnnnn Invalide"}
+        #     )
 
         idCountry = odooDatabase.execute_kw(
             'res.country',  # Modèle Odoo
@@ -33,6 +33,9 @@ class WilayaController():
             {'fields': ['id','name','code','pf_ids']} 
         )
 
+
+        
+        
         try:    
             return wilaya
         except HTTPException as e:
