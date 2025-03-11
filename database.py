@@ -9,11 +9,14 @@ class OdooDatabase:
 
     def __init__(self):
         self.url = odooCredentials.url
+        print ("misee en cacheeeeeeeeeeeeeeee",self.url )
         self.db = odooCredentials.db
+        print ("misee en cacheeeeeeeeeeeeeeee",self.db )
         self.username = odooCredentials.username
         self.password = odooCredentials.password
         self.uid = None
         self.models = xmlrpc.client.ServerProxy('{}/xmlrpc/2/object'.format(self.url))
+        print ("misee en cacheeeeeeeeeeeeeeee",self.models )
         common = xmlrpc.client.ServerProxy('{}/xmlrpc/2/common'.format(self.url))
         uid = common.authenticate(self.db, self.username, self.password, {})
         if uid:
@@ -23,7 +26,9 @@ class OdooDatabase:
             self.uid = None
             print("Authentification échouée")
         base_url = self.execute_kw('ir.config_parameter', 'get_param',['web.base.url'])
+        
         self.base_url = base_url
+        
 
     def execute_kw(self, *args):
         return self.models.execute_kw(self.db, self.uid, self.password, *args)

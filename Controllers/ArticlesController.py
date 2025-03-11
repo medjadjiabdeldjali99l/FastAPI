@@ -47,10 +47,15 @@ class ArticlesController():
             'product.template',  # Modèle Odoo
             'search_read',  # Méthode utilisée pour la recherche et la lecture
             [domain], 
-            {'fields': ['id','name','default_code','list_price','categ_id','product_score','paint_type','surface_type','image_1920']} 
+            {'fields': ['id','name','default_code','list_price','categ_id','product_score','paint_type','surface_type','image_1920','description','volume','weight','description_mobile','packaging_ids']} 
         )
+
+
+        
         if product:
-            print( "samyyyyyyyyyyyyyyyyy=================================================",product[0])
+            print( "samyyyyyyyyyyyyyyyyy=================================================",product[1])
+            image_url = f"{odooDatabase.base_url}web/image/product.template/{product[0]['id']}/image_1024"
+            print( "sallle ",odooDatabase.base_url)
         
         all_prd = [
             ProductsData(
@@ -62,7 +67,8 @@ class ArticlesController():
                 typeSurface =i['surface_type'][1] if i['surface_type'] else None,
                 typePeinture=i['paint_type'][1] if i['paint_type'] else None,
                 etoiles=int(i['product_score'] if i['product_score'] else 1 ),
-                image = i['image_1920'] if i['image_1920'] else None 
+                image = i['image_1920'] if i['image_1920'] else None ,
+                #img_url=image_url if image_url else None
             )
             for i in product
         ]

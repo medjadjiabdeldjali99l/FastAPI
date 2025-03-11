@@ -21,3 +21,10 @@ async def all_stand(request : Request,token:Annotated[str, Depends(oauth2_scheme
 @router.post("/stand_order")
 async def stands_order(request : Request,id_det: int = Query(None, description="L'id doit être un entier"),idStand: int = Query(None, description="L'id doit être un entier")):
     return StandController.get_stands_order(request=request, id_det=id_det,idStand=idStand)
+
+
+
+@router.get("/description_stand")
+async def desc_stand(request : Request,token:Annotated[str, Depends(oauth2_scheme)],idStand: int = Query(None, description="L'id doit être un entier")):
+    return StandController.get_desc_stand(request=request, token=token,idStand=idStand)
+

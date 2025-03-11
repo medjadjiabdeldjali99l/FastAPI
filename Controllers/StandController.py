@@ -149,6 +149,7 @@ class StandController():
             {'fields': ['id','name','partner_id','delegue_id','espace_type_id']} 
       
         )
+
         
 
         l = [i['espace_type_id'][1] for i in plvp if 'espace_type_id' in i and i['espace_type_id']]
@@ -186,7 +187,54 @@ class StandController():
             {'fields': ['id','name','montant_min']} 
       
         )
-        print(all_plvp)
+        # 'sale_order_template_line_ids','ecart','total','sous_total1','sous_total2','sous_total3','nombre_article'
+        # print(all_plvp)
+
+        # for x in all_plvp:
+        #     list_line=x['sale_order_template_line_ids']
+            
+        #     line_in_plvp = odooDatabase.execute_kw(
+        #         'sale.order.template.line',  # Modèle Odoo
+        #         'search_read',  # Méthode utilisée pour la recherche et la lecture
+        #         [[('id','in',list_line),('check','=','oui')]],
+        #         {'fields': ['id','product_id','product_uom_qty','product_packaging','check','price_unit']} 
+        #     )
+
+        #     # print(line_in_plvp)
+        #     for kk in line_in_plvp:
+        #         print(kk)
+
+        #     break
+
+
+
+        #     print(list_line)
+
+
+
+        # all_plvp_gc = odooDatabase.execute_kw(
+        #     'sale.order.template',  # Modèle Odoo
+        #     'search_read',  # Méthode utilisée pour la recherche et la lecture
+        #     [[]],
+        #     {'fields': ['name', 'sale_order_template_line_ids', 'note', 'sale_order_template_option_ids', 'number_of_days', 'require_signature', 'require_payment', 'mail_template_id', 'active', 'company_id', 'montant_min', 'ecart', 'total', 'sous_total1', 'sous_total2', 'sous_total3', 'nombre_article', 'currency_id',  'type_model', 'id', 'display_name', 'create_uid', 'create_date', 'write_uid', 'write_date', '__last_update']} 
+      
+        # )
+        # print("harechhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh\n",all_plvp_gc)
+
+        # all_fields = odooDatabase.execute_kw(
+        #     'sale.order.template',  # Modèle Odoo
+        #     'fields_get',  # Méthode pour obtenir les champs
+        #     [],
+        #     {'attributes': ['string']}  # Optionnel : obtenir les noms lisibles
+        # )
+
+        # # Extraire uniquement les noms des champs
+        # field_names = list(all_fields.keys())
+
+        # print(field_names)
+
+
+
 
         try:    
             return all_plvp
@@ -202,5 +250,55 @@ class StandController():
         
         activity_ids = create_todo_activity(request ,odooDatabase,id_det ,idStand)
         return {"message": "Activités créées avec succès", "activity_ids": activity_ids}
+
+
+
+    @staticmethod # Ready
+    def get_desc_stand( request : Request, token : str, idStand : int):
+        odooDatabase : OdooDatabase = request.app.state.odooDatabase
+        user = TokenTools.check_token(token)
+        print("userrrrrrrrrrrrrrrrrrrrrr",user)
+        if not user : 
+            raise HTTPException(
+                status_code=401,  
+                detail={"status": False, "error": "Tokennnnnnnnnnnnnnnnnnnnnnnnnnnn Invalide"}
+            )
+
+        print(idStand)
+
+        all_plvp = odooDatabase.execute_kw(
+            'sale.order.template',  # Modèle Odoo
+            'search_read',  # Méthode utilisée pour la recherche et la lecture
+            [[('id','=',idStand)]],
+            {'fields': ['id','name','montant_min','sale_order_template_line_ids','ecart','total','sous_total1','sous_total2','sous_total3','nombre_article']} 
+      
+        )
+
+        
+        list_line=all_plvp[0]['sale_order_template_line_ids']
+            
+        line_in_plvp = odooDatabase.execute_kw(
+            'sale.order.template.line',  # Modèle Odoo
+            'search_read',  # Méthode utilisée pour la recherche et la lecture
+            [[('id','in',list_line),('check','=','oui')]],
+            {'fields': ['id','product_id','product_uom_qty','product_packaging','price_unit']} 
+        )
+
+        # print(line_in_plvp)
+        for kk in line_in_plvp:
+            print(kk)
+
+        
+        
+
+        
+        
+
+        try:    
+            return line_in_plvp
+        except HTTPException as e:
+            raise e
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
 
 
