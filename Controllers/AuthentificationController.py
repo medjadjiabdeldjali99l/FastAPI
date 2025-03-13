@@ -68,9 +68,7 @@ def get_delegues_for_detailant(detailant_id ,odooDatabase):
         {'fields': ['id', 'name', 'pf_ids']}  # Fetch their portefeuille (pf_ids)
     )
 
-    # Debugging: Print all deleguÃ©s and their pf_ids
-    for delegue in delegues:
-        print(f"Delegué ID: {delegue['id']}, PF_IDs: {delegue.get('pf_ids')}")
+    
 
     matched_delegues = []
     for delegue in delegues:
@@ -95,9 +93,8 @@ def create_record_in_new_table(odooDatabase : OdooDatabase, new_detaillant, phon
     # Crée un enregistrement dans la nouvelle table avec les détails du détaillant.
 
     plain_password=Password.get_random_string(8)
-    print("9etarrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr ",plain_password)
+    print ("password plain adhhh =============================================",plain_password)
     hashed_password = Password.get_password_hash(plain_password)
-    print("hada pasword hasher",hashed_password)
     # hashed_password = plain_password   #
     
     nvlTableVals = {
@@ -122,9 +119,8 @@ def create_record_in_new_table_respartner(odooDatabase : OdooDatabase, new_detai
     # Crée un enregistrement dans la nouvelle table avec les détails du détaillant.
 
     plain_password=Password.get_random_string(8)
-    print("9etarrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr ",plain_password)
+    print ("password plainn inscr==============================================",plain_password)
     hashed_password = Password.get_password_hash(plain_password)
-    print("hada pasword hasher",hashed_password)
     # hashed_password = plain_password   #
     
     nvlTableVals = {
@@ -152,23 +148,19 @@ class AuthentificationController():
         
 
         token_data = TokenTools.check_token(token)
-        print("userrrrrrrrrrrrrrrrrrrrrr",token_data)
         if not token_data : 
             raise HTTPException(
                 status_code=401,  
-                detail={"status": False, "error": "Tokennnnnnnnnnnnnnnnnnnnnnnnnnnn Invalide"}
+                detail={"status": False, "error": "Token Invalide"}
         )
 
 
-        print("=========================================auth====",token_data)
 
         etatDeCnx = token_data['state']
         user_1 = odooDatabase.execute_kw('info.cnx', 'read', [token_data['id']])
-        print ( "lalkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk===",user_1)
         if etatDeCnx == 'candidate' :
             user_2 = odooDatabase.execute_kw('partner.candidate', 'read', [user_1[0]['candidate_id'][0]], {'fields': ['name','categorie_id', 'commune_id', 'state_id','name_magasin','state','email','phone']})	
-        
-            print ( " c un condidat ")
+      
 
             ready_user = CondidateData(
                 id = user_2[0].get('id'),
@@ -190,11 +182,7 @@ class AuthentificationController():
                 "data": ready_user.dict() 
             }
         elif etatDeCnx == 'partner' :
-            print ( " c un partner ")
-
-
-
-        
+            
             user_2 = odooDatabase.execute_kw('res.partner', 'read', [user_1[0]['partner_id'][0]], {'fields': ['id','name', 'name_magasin', 'categorie_id', 'commune_id', 'street','code','etoile','nbr_points', 'state_id','new_tlp1']})	
             full_user = {**user_1[0],**user_2[0]}
             social_media = odooDatabase.execute_kw('reseau.sociaux', 'search_read',[[['iduser', '=', token_data['id']]],['id','type','lien_profil']])
@@ -202,9 +190,8 @@ class AuthentificationController():
 
             for social in social_media:
                 typeSocialMedia = next((smt for smt in SocialMediaType if smt.value == social['type']), None)
-                print("asssssssssssssssssssssssssss",typeSocialMedia)
                 ready_social_media.append(SocialMedia(id=social['id'], type=typeSocialMedia, url=social['lien_profil']))
-            print ( " faussssssssssssssssse alerte")
+        
 
             ready_images = []
             for image_id in full_user['images_magasins_ids']:
@@ -212,7 +199,6 @@ class AuthentificationController():
                 ready_images.append(Image(id=image_id, image=image_url))
             
                 # Liste des champs à vérifier
-            print( "farinaaaaaaaaaaaaaaaaaaaaaaaaa",ready_images)
             fields_to_check = [
                 'id','name','telephone', 'name_magasin', 'street', 'email',
                 'categorie_id', 'state_id', 'commune_id', 'images_magasins_ids', 'reseau_sociaux_ids','new_tlp1'] #Ajouter fields localisation
@@ -223,8 +209,6 @@ class AuthentificationController():
             total_fields = len(fields_to_check)
 
             result = get_delegues_for_detailant( full_user['id'],odooDatabase)
-            print ( "importationnnnnnnnnnnnnnnnnnnn")
-            print(full_user)
         
             ready_user = UserData(
                 id=full_user.get('id'),
@@ -259,7 +243,6 @@ class AuthentificationController():
     @staticmethod # Ready
     def login(request: Request,UserLogin:dict):
         odooDatabase : OdooDatabase = request.app.state.odooDatabase
-        print("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz", type(UserLogin))
 
         bloque = odooDatabase.execute_kw('info.cnx', 'search', [[['telephone', '=', UserLogin.phone],['active', '=', "False"]]])
 
@@ -271,7 +254,7 @@ class AuthentificationController():
 
         det = odooDatabase.execute_kw('info.cnx', 'search', [[['telephone', '=', UserLogin.phone]]])
 
-        print("detttttttttttttttttttttttttttttttttttttttt",det)
+      
 
         users = None
         if det:
@@ -282,13 +265,7 @@ class AuthentificationController():
                 detail="Numéro de téléphone introuvable"
             )
         hashed=Password.get_password_hash(UserLogin.password)
-        print( "tasnimmmmmmmmmmmmmmmmmmmmmmmmmm",hashed,UserLogin.password,users[0]['password'] ,type(UserLogin.password),type(users[0]['password']))
-
-        # if not Password.verify_password(UserLogin.password,hashed):
-        #     raise HTTPException(
-        #         status_code=422, 
-        #         detail="Mot de passe incorrect"
-        #     )
+        
 
         
         
@@ -306,25 +283,21 @@ class AuthentificationController():
             )
 
         user = users[0]
-        print ("okkkkkkkkkkkkkkkkkk==========================",user)
 
         
         bb=historiqueConnexionAndActions(True)
-        print( "utilsqsssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",bb)
         
 
 
         if ( user['state']=='candidate'):
-            print ( " hada condidate")
+
             Condidat = odooDatabase.execute_kw('partner.candidate', 'read', [user['candidate_id'][0]], {'fields': ['name','categorie_id', 'commune_id', 'state_id','name_magasin','state','email','phone']})
             dat=TokenData(id=user["id"],telephone=user['telephone'], state=user['state']).dict()
-            print ( "agilitiiiiiiiiiiiiiii",dat)
+
             access_token_expires = timedelta(minutes=30)
             token= TokenTools.generate_token(data=dat,expires_delta=access_token_expires)
-            print ( "ççççççççççççççççççççççççççççççççççççç",token)
 
             yy=TokenTools.check_token(token)
-            print("jiraaaaaaaaaaa**************************************a",yy)
 
             ready_user = CondidateData(
                 id = Condidat[0].get('id'),
@@ -347,18 +320,15 @@ class AuthentificationController():
             }
 
         else:
-            print( " machi state condidate hada ")
+
 
             detailant = odooDatabase.execute_kw('res.partner', 'read', [user['partner_id'][0]], {'fields': ['code','name','categorie_id', 'commune_id', 'street','code','etoile','nbr_points', 'state_id','new_tlp1','name_magasin']})
 
             dat=TokenData(id=user["id"],telephone=user['telephone'], state=user['state']).dict()
-            print ( "agilitiiiiiiiiiiiiiii",dat)
+     
             access_token_expires = timedelta(minutes=30)
             token= TokenTools.generate_token(data=dat,expires_delta=access_token_expires)
-            print ( "ççççççççççççççççççççççççççççççççççççç",token)
-
             yy=TokenTools.check_token(token)
-            print("jiraaaaaaaaaaa**************************************a",yy)
             
             
             
@@ -415,17 +385,15 @@ class AuthentificationController():
     def inscription(request: Request, data: RegisterUser):
         odooDatabase: OdooDatabase = request.app.state.odooDatabase
         
-        print ( "biiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii")
-        print( data)
+    
         # Verifier si le code détaillant existe sur la table res.partner
         det_id = odooDatabase.execute_kw('res.partner', 'search_read',[[['code', '=', data.codeDet]],['code','phone']])
-        print ( "air algeriiiii",det_id[0])
+      
         if not det_id:
             raise HTTPException(
                 status_code=422, 
                 detail="Code détaillant n'existe pas"
             )
-        print ("crechhhhhhhhhhh",det_id[0]['phone'],data.phone)
         if data.phone != det_id[0]['phone'] :
             raise HTTPException(
                 status_code=422, 
@@ -434,7 +402,7 @@ class AuthentificationController():
        
         # Verifier si le numéro de téléphone est déjà utilisé ou si le code détaillant est déjà associé à un compte
         det = odooDatabase.execute_kw('info.cnx', 'search_read', [['|',['telephone', '=', data.phone],['id_user', '=', det_id[0]['id']]]])
-        print ( "====================================================|||======",det)
+      
         if ( True in [det[i]['telephone'] == data.phone for i in range(len(det))] ):
             raise HTTPException(
                 status_code=422, 
@@ -450,9 +418,7 @@ class AuthentificationController():
         # Créer un enregistrement dans la nouvelle table
         record_mobile_id = create_record_in_new_table_respartner(odooDatabase, det_id[0], phone=data.phone)
         detaillant_adher = odooDatabase.execute_kw('info.cnx', 'read', [[record_mobile_id], ['id','telephone','password','state']])
-        print("chaneleeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",detaillant_adher)
-
-        print ( record_mobile_id)
+        
         if not record_mobile_id:
             raise HTTPException(
                 status_code=503,
@@ -476,8 +442,7 @@ class AuthentificationController():
                 detail="Ce numéro de téléphone est déjà associé à un compte"
             ) 
         
-        region_id, pf_id = 13, 6 #Poour les tests brk on verra après kifeh nmappiw
-        print ( "abdelaba9IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII",data)
+        region_id, pf_id = 13, 6 #Poour les tests brk on verra après k
         vals = {
             'name': data.name,
             'categorie_id' : data.categorie_id,
@@ -498,13 +463,10 @@ class AuthentificationController():
         }
 
         filtered_vals = remove_none_values(vals)
-        print ( " aimennnnnnnnnnnnnnnnnn",filtered_vals)
-        
         
 
         new_detaillant_id = odooDatabase.execute_kw( 'partner.candidate','create', [filtered_vals])
         
-        print( 'faiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiittttttttttttttttttttttttttttttttttttt',new_detaillant_id)
         # Créer le nouveau détaillant dans Odoo
         # new_detaillant_id = odooDatabase.execute_kw( 'res.partner', 'create', [filtered_vals])
         
@@ -516,14 +478,11 @@ class AuthentificationController():
         
         # Lire les détails du nouveau détaillant créé
         new_detaillant = odooDatabase.execute_kw('partner.candidate', 'read', [[new_detaillant_id], ['id']])[0]
-        print("ayaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",new_detaillant)
 
         # Créer l'enregistrement dans la nouvelle table
         detNvlTable_id = create_record_in_new_table(odooDatabase, new_detaillant, phone=data.phone_compte)
 
-        print ( "====================================",detNvlTable_id)
         info_envoyer = odooDatabase.execute_kw('info.cnx', 'read', [[detNvlTable_id]])
-        print( "===========================================",info_envoyer)
         
         if not detNvlTable_id:
             raise HTTPException(
@@ -629,7 +588,6 @@ class AuthentificationController():
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        print( user,'lahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh')
 
         info_cnx_id = user[0]["id"]
 

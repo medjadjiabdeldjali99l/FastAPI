@@ -16,10 +16,7 @@ class DiscoverController():
             {'fields': ['id','name','description','date']} 
       
         )
-        print(disc)
         
-        
-
         try:    
             return disc
         except HTTPException as e:

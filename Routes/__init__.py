@@ -4,6 +4,7 @@ from Routes.Main import router as MainRouter
 from Routes.Profile import router as ProfileRouter
 from Routes.Annuaire import router as AnnuaireRouter
 from Routes.stand import router as StandRouter
+from Routes.Marquage import router as MarkRouter
 from Routes.Discover import router as DiscoverRouter
 from Routes.Historique import router as  HistoriqueRouter
 from Routes.HistoriqueNiveau import router as  HistoriqueNiveauRouter
@@ -21,6 +22,7 @@ router.include_router(MainRouter, tags=["Main"], prefix="/main")
 router.include_router(ProfileRouter, tags=["Profile"],prefix="/profile")
 router.include_router(AnnuaireRouter,tags=["Annuaire"],prefix="/annuaire")
 router.include_router(StandRouter,tags=["Stand"],prefix="/stand")
+router.include_router(MarkRouter,tags=["marking"],prefix="/marking")
 router.include_router(HistoriqueRouter,tags=["historique"],prefix="/historique")
 router.include_router(HistoriqueNiveauRouter,tags=["historiqueniveau"],prefix="/historiqueniveau")
 router.include_router(CatalogueRouter,tags=["catalogs"],prefix="/catalogs")

@@ -16,11 +16,10 @@ class ArticlesController():
         odooDatabase : OdooDatabase = request.app.state.odooDatabase
 
         user = TokenTools.check_token(token)
-        print("userrrrrrrrrrrrrrrrrrrrrr",user)
         if not user : 
             raise HTTPException(
                 status_code=401,  
-                detail={"status": False, "error": "Tokennnnnnnnnnnnnnnnnnnnnnnnnnnn Invalide"}
+                detail={"status": False, "error": "Token Invalide"}
             )
         #ajoute des filtre ici 
         domain = [('sale_ok', '=', True)]
@@ -28,19 +27,14 @@ class ArticlesController():
         if id_cat:
             domain.append(('categ_id', '=', id_cat))
         if search:
-            print("seaaaaaaaaaaaarch",search)
-            domain.extend(['|', ('default_code', 'like', search), ('name', 'like', search)])
+            domain.extend(['|', ('default_code', 'ilike', search), ('name', 'ilike', search)])
         if id_sur :
-            print("surfaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaace",id_sur)
             domain.append(('surface_type', '=', id_sur))
         if id_paint:
-            print("paintttttttttttttttttttt",id_paint)
             domain.append(('paint_type', '=', id_paint))
         if new_product:
-            print("newwwwwwwwwwwwwwwwwwwwwwwwwwwww",new_product)
             domain.append(('is_new_product', '=', new_product))
         if etoile:
-            print("product_score",etoile)
             domain.append(('product_score', '=', etoile + 1))
         
         product = odooDatabase.execute_kw(
@@ -53,9 +47,7 @@ class ArticlesController():
 
         
         if product:
-            print( "samyyyyyyyyyyyyyyyyy=================================================",product[1])
             image_url = f"{odooDatabase.base_url}web/image/product.template/{product[0]['id']}/image_1024"
-            print( "sallle ",odooDatabase.base_url)
         
         all_prd = [
             ProductsData(

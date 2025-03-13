@@ -24,29 +24,14 @@ def get_group_id(group_xml_id ,odooDatabase ):
 class AnnuaireController():
     @staticmethod # Ready
     def get_contacts(request : Request,token:Token ,fonction:str, idWilaya:int,search:str):
-
-        print("les infossssssssssssssssssssssssssssssssss", fonction, idWilaya ,search  )
-
-        
-    
         odooDatabase : OdooDatabase = request.app.state.odooDatabase
 
-        
         user = TokenTools.check_token(token)
-        print("userrrrrrrrrrrrrrrrrrrrrr",user)
         if not user : 
             raise HTTPException(
                 status_code=401,  
-                detail={"status": False, "error": "Tokennnnnnnnnnnnnnnnnnnnnnnnnnnn Invalide"}
+                detail={"status": False, "error": "Token Invalide"}
             )
-        
-        # dat={"id":1,"telephone":"0778240169", "state":"allo alllo"}
-        # access_token_expires = timedelta(minutes=30)
-        # tt= TokenTools.generate_token(data=dat,expires_delta=access_token_expires)
-        # print ( "ççççççççççççççççççççççççççççççççççççç",tt)
-
-        # yy=TokenTools.check_token(tt)
-        # print("jiraaaaaaaaaaaa",yy)
         
         if fonction == 'sup':
             sup_group = odooDatabase.execute_kw(
@@ -65,17 +50,13 @@ class AnnuaireController():
                     [[['country_id', '=',62 ],['id','=',idWilaya]]],
                     {'fields': ['id','name','code','pf_ids']} 
                 )
-                print(wilaya)
                 # domain.append(tuple(wilaya[0]['pf_ids']))
-                print ( wilaya[0]['pf_ids'])
                 domain.append(('pf_ids','in',wilaya[0]['pf_ids'][0]))
-                print(domain)
             users_in_sup_group = odooDatabase.execute_kw(
                 'res.users', 'search_read',
                 [domain],  # Filtrer par le groupe
                 {'fields': ['id',  'login','region_id','pf_ids']}
             )
-            print("*********************************************************************************")
 
             wilaya = odooDatabase.execute_kw(
                     'res.country.state',  # Modèle Odoo
@@ -90,8 +71,6 @@ class AnnuaireController():
                         if k in j['pf_ids']:
                             l.append(j['name'])
                     i['wilaya']=l
-
-            print("Nombre d'utilisateurs dans le groupe Superviseur :", len(users_in_sup_group))
 
             # Étape 3 : Récupérer les employés liés à ces utilisateurs
             sup_user_ids = [user['id'] for user in users_in_sup_group]
@@ -109,8 +88,6 @@ class AnnuaireController():
                         if i['region_id']:
                             j['rg']=i['region_id'][1]
                             break
-                        else :
-                            print (" 1 i ou j",i ,j)
         
 
             for i in users_in_sup_group:
@@ -158,10 +135,9 @@ class AnnuaireController():
                     [[['country_id', '=',62 ],['id','=',idWilaya]]],
                     {'fields': ['id','name','code','pf_ids']} 
                 )
-                print(wilaya)
-                print ( wilaya[0]['pf_ids'])
+
                 domain.append(('pf_ids','in',wilaya[0]['pf_ids'][0]))
-                print(domain)
+
             
 
             users_in_delegue_group = odooDatabase.execute_kw(
@@ -204,8 +180,6 @@ class AnnuaireController():
                         if i['region_id']:
                             j['rg']=i['region_id'][1]
                             break
-                        else :
-                            print (" 3 i ou j",i ,j)
 
             for i in users_in_delegue_group:
                 for j in delegue_employees:
@@ -255,25 +229,14 @@ class AnnuaireController():
                         [[['country_id', '=',62 ],['id','=',idWilaya]]],
                         {'fields': ['id','name','code','pf_ids']} 
                     )
-                    print(wilaya)
-                    print ( wilaya[0]['pf_ids'])
-                    
 
-                    
                     domain.append(('pf_ids','in',wilaya[0]['pf_ids'][0]))
                     
-                    print(domain)
-
-
                 users = odooDatabase.execute_kw(
                     'res.users', 'search_read',
                     [domain],
                     {'fields': ['id', 'login', 'region_id','pf_ids']}
                 )
-                print("hada howa ")
-                print(users)
-
-                
 
                 if not users:
                     raise HTTPException(
@@ -315,8 +278,6 @@ class AnnuaireController():
                                 if i['region_id']:
                                     j['rg']=i['region_id'][1]
                                     break
-                                else :
-                                    print ("2 i ou j",i ,j)
 
                     for i in users:
                         for j in employees:

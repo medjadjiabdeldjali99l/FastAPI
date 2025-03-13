@@ -10,11 +10,10 @@ class CommuneController():
     @staticmethod # Ready
     def get_all_commune( request : Request,codeWilayaOdoo:str):
         odooDatabase : OdooDatabase = request.app.state.odooDatabase
-        
+
         commune=None
         
         if codeWilayaOdoo:
-            print( "code wilaya c ",codeWilayaOdoo)
 
             commune = odooDatabase.execute_kw(
                 'res.commune',  # Modèle Odoo
@@ -22,7 +21,6 @@ class CommuneController():
                 [[['state_id', '=',int (codeWilayaOdoo) ]]],
                 {'fields': ['id','name']} 
             )
-            print ( commune)
 
 
         

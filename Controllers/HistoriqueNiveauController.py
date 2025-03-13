@@ -10,7 +10,6 @@ class HistoriqueNiveauController():
     def get_all_niveaux( request : Request, token : str,id_det:int):
         odooDatabase : OdooDatabase = request.app.state.odooDatabase
         user = TokenTools.check_token(token)
-        print("userrrrrrrrrrrrrrrrrrrrrr",user)
         if not user : 
             raise HTTPException(
                 status_code=401,  
@@ -25,7 +24,6 @@ class HistoriqueNiveauController():
             [[['partner_id', '=', id_det], ['state_niveau', '=', 'ok_passage']]],
             {'fields': ['id','date','niveau_old_id','action','niveau_new_id']} 
         )
-        print( histo_niveau)
         pp = [{"name": i['niveau_old_id'][1], "date": i['date']} for i in histo_niveau]
 
         data ={"historique_niveau":pp}

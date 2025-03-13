@@ -10,14 +10,12 @@ class CatalogueController():
     @staticmethod # Ready
     def get_all_category( request : Request, token : Token):
         
-        print ( "raniiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii =====", token )
         odooDatabase : OdooDatabase = request.app.state.odooDatabase
         user = TokenTools.check_token(token)
-        print("userrrrrrrrrrrrrrrrrrrrrr",user)
         if not user : 
             raise HTTPException(
                 status_code=401,  
-                detail={"status": False, "error": "Tokennnnnnnnnnnnnnnnnnnnnnnnnnnn Invalide"}
+                detail={"status": False, "error": "Token Invalide"}
             )
 
         liste_cat=[9, 133, 1, 7, 8, 144, 128]
@@ -41,11 +39,10 @@ class CatalogueController():
 
         odooDatabase : OdooDatabase = request.app.state.odooDatabase
         user = TokenTools.check_token(token)
-        print("userrrrrrrrrrrrrrrrrrrrrr",user)
         if not user : 
             raise HTTPException(
                 status_code=401,  
-                detail={"status": False, "error": "Tokennnnnnnnnnnnnnnnnnnnnnnnnnnn Invalide"}
+                detail={"status": False, "error": "Token Invalide"}
             )
 
         liste_cat=[9, 133, 1, 7, 8, 144, 128]
@@ -55,7 +52,6 @@ class CatalogueController():
             [[]],
             {'fields': ['id','name']} 
         )
-        print(surface)
         
         try:    
             return surface
@@ -69,7 +65,6 @@ class CatalogueController():
 
         odooDatabase : OdooDatabase = request.app.state.odooDatabase
         user = TokenTools.check_token(token)
-        print("userrrrrrrrrrrrrrrrrrrrrr",user)
         if not user : 
             raise HTTPException(
                 status_code=401,  
@@ -83,7 +78,6 @@ class CatalogueController():
             [[]],
             {'fields': ['id','name']} 
         )
-        print(paint)
         
 
         try:    

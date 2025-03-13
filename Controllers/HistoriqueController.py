@@ -11,11 +11,10 @@ class HistoriqueController():
     def get_all_points( request : Request, token : str,id_det:int):
         odooDatabase : OdooDatabase = request.app.state.odooDatabase
         user = TokenTools.check_token(token)
-        print("userrrrrrrrrrrrrrrrrrrrrr",user)
         if not user : 
             raise HTTPException(
                 status_code=401,  
-                detail={"status": False, "error": "Tokennnnnnnnnnnnnnnnnnnnnnnnnnnn Invalide"}
+                detail={"status": False, "error": "Token Invalide"}
             )
 
 
@@ -25,8 +24,6 @@ class HistoriqueController():
             [[['partner_id', '=', id_det]]],
             {'fields': ['action_id','date_action']} 
         )
-        print("pointssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss")
-        print(points ,len (points))
 
         l = [i['action_id'][0] for i in points]
 
@@ -38,16 +35,12 @@ class HistoriqueController():
             [[['id', 'in', l]]],  # Domaine vide -> sélectionne tous les enregistrements
             {'fields': ['code', 'name','points']}  # Champs à récupérer
         )
-        print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-        
-        print(action)
         for i in action:
             for j in points:
                 if j['action_id'][0]==i['id']:
                     i['date_action']=j['date_action']
         
-        print("finallle versionnnnn")
-        print(action)
+        
 
 
 

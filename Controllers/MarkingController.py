@@ -121,134 +121,43 @@ def create_todo_activity(request,odooDatabase:OdooDatabase,id_det,idStand):
 
 
 
-class StandController():
+class MarkingController():
     
     @staticmethod # Ready
-    def get_all_stand( request : Request, token : str,id_det:int):
+    def get_all_markings( request : Request, token : str):
         odooDatabase : OdooDatabase = request.app.state.odooDatabase
         user = TokenTools.check_token(token)
         if not user : 
             raise HTTPException(
                 status_code=401,  
-                detail={"status": False, "error": "Tokennnnnnnnnnnnnnnnnnnnnnnnnnnn Invalide"}
+                detail={"status": False, "error": "Token Invalide"}
             )
 
-
-        plvp = odooDatabase.execute_kw(
-            'crm.plv',  # Modèle Odoo
-            'search_read',  # Méthode utilisée pour la recherche et la lecture
-            [[['partner_id', '=', id_det]]],
-            {'fields': ['id','name','partner_id','delegue_id','espace_type_id']} 
-      
-        )
-
         
-
-        l = [i['espace_type_id'][1] for i in plvp if 'espace_type_id' in i and i['espace_type_id']]
-
-   
-        
-        u = [{'name': i} for i in l]
-        
-
-        try:    
-            return u
-        except HTTPException as e:
-            raise e
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
-
-
-
-
-    @staticmethod # Ready
-    def get_all_stands( request : Request, token : str):
-        odooDatabase : OdooDatabase = request.app.state.odooDatabase
-        user = TokenTools.check_token(token)
-        if not user : 
-            raise HTTPException(
-                status_code=401,  
-                detail={"status": False, "error": "Tokennnnnnnnnnnnnnnnnnnnnnnnnnnn Invalide"}
-            )
-
-        all_plvp = odooDatabase.execute_kw(
-            'sale.order.template',  # Modèle Odoo
+        cc = odooDatabase.execute_kw(
+            'images.magasins',  # Modèle Odoo
             'search_read',  # Méthode utilisée pour la recherche et la lecture
             [[]],
-            {'fields': ['id','name','montant_min','image']} 
+            {'fields': ['id','name','image']} 
       
         )
-        
+        print ('ccccccccccccccccccccccccccccc' ,cc)
 
+        all_lots = odooDatabase.execute_kw(
+            'nomenclature.lots',  # Modèle Odoo
+            'search_read',  # Méthode utilisée pour la recherche et la lecture
+            [[]],
+            {'fields': ['id','name','description','obligatoire']} 
+      
+        )
+        print ( all_lots)
+        
         try:    
-            return all_plvp
+            return all_lots
         except HTTPException as e:
             raise e
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
 
-    @staticmethod # Ready
-    def get_stands_order(request : Request, id_det : int, idStand : int):
-        odooDatabase : OdooDatabase = request.app.state.odooDatabase
-        
-        activity_ids = create_todo_activity(request ,odooDatabase,id_det ,idStand)
-        return {"message": "Activités créées avec succès", "activity_ids": activity_ids}
-
-
-
-    @staticmethod # Ready
-    def get_desc_stand( request : Request, token : str, idStand : int):
-        odooDatabase : OdooDatabase = request.app.state.odooDatabase
-        user = TokenTools.check_token(token)
-        if not user : 
-            raise HTTPException(
-                status_code=401,  
-                detail={"status": False, "error": "Tokennnnnnnnnnnnnnnnnnnnnnnnnnnn Invalide"}
-            )
-
-        all_plvp = odooDatabase.execute_kw(
-            'sale.order.template',  # Modèle Odoo
-            'search_read',  # Méthode utilisée pour la recherche et la lecture
-            [[('id','=',idStand)]],
-            {'fields': ['id','name','montant_min','sale_order_template_line_ids','ecart','total','sous_total1','sous_total2','sous_total3','nombre_article']}       
-        )
-        if not all_plvp:
-            raise HTTPException(
-                status_code=422,  
-                detail={"status": False, "error": "Plvp Introuvable"}
-            )
-
-
-        list_line=all_plvp[0]['sale_order_template_line_ids']
-            
-        line_in_plvp = odooDatabase.execute_kw(
-            'sale.order.template.line',  # Modèle Odoo
-            'search_read',  # Méthode utilisée pour la recherche et la lecture
-            [[('id','in',list_line),('check','=','oui')]],
-            {'fields': ['id','product_id','product_uom_qty','product_packaging','price_unit']} 
-        )
-
-        descreption_lines_plvp = [
-            {
-                'id': i['id'],
-                'product': i['product_id'][1],
-                'product_qty': i['product_uom_qty'],
-                'product_packaging': i['product_packaging'][1],
-                'price_unit': i['price_unit']
-            }
-            for i in line_in_plvp
-        ]
-
-
-
-        
-
-        try:    
-            return descreption_lines_plvp
-        except HTTPException as e:
-            raise e
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
-
-
+    

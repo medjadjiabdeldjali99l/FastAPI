@@ -42,7 +42,6 @@ class TokenTools:
               
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-            print("=========================================================", payload)
             if payload is None:
                 raise False
         except InvalidTokenError:

@@ -31,8 +31,3 @@ class Password:
         
         return result_str
 
-
-    # Exemple d'utilisation
-    # hashed = Password.get_password_hash("monmotdepasse")
-    # print(Password.verify_password("monmotdepasse", hashed))  # True
-    # print(Password.verify_password("mauvaismotdepasse", hashed))  # False

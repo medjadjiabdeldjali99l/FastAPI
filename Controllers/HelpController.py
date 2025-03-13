@@ -12,7 +12,6 @@ class HelpController():
     def get_help( request : Request, token : str ):
         odooDatabase : OdooDatabase = request.app.state.odooDatabase
         user = TokenTools.check_token(token)
-        print("userrrrrrrrrrrrrrrrrrrrrr",user)
         if not user : 
             raise HTTPException(
                 status_code=401,  
@@ -28,7 +27,6 @@ class HelpController():
             {'fields': ['question','answer']} 
         )
 
-        print( "FAQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ===============================",FAQ)
 
         objetTemplate = odooDatabase.execute_kw(
             'help.topic',  # Modèle Odoo
@@ -36,8 +34,6 @@ class HelpController():
             [[ ]],
             {'fields': ['name']} 
         )
-        print("cadavrrrrrrrrrrrrrrrrrrrrrrrr",objetTemplate)
-        print( " la saissonnnnnnnnnnnnnnnnnnnnnnn",FAQ)
 
 
 
@@ -64,14 +60,12 @@ class HelpController():
     def SendEmailDetallaint(request: Request, message : str,idDetaillant : int,idTopic : int):  
         odooDatabase : OdooDatabase = request.app.state.odooDatabase
 
-        print ( message,idDetaillant,idTopic,'"""""""""""""""""""""""""""""""')
 
         nvlTableVals = {
             "partner_id": idDetaillant,
             "topic_id": idTopic , #hardcodeddd 
             "message": message.content,
         }
-        print("tramwaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaayyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy")
         
         # Créer l'enregistrement dans info.cnx
         detNvlTable_id = odooDatabase.execute_kw('help.request', 'create', [nvlTableVals])

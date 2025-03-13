@@ -10,13 +10,7 @@ class WilayaController():
     @staticmethod # Ready
     def get_all_wilaya( request : Request, codeCountryOdoo:str):
         odooDatabase : OdooDatabase = request.app.state.odooDatabase
-        # user = TokenTools.check_token(token)
-        # print("userrrrrrrrrrrrrrrrrrrrrr",user)
-        # if not user : 
-        #     raise HTTPException(
-        #         status_code=401,  
-        #         detail={"status": False, "error": "Tokennnnnnnnnnnnnnnnnnnnnnnnnnnn Invalide"}
-        #     )
+        
 
         idCountry = odooDatabase.execute_kw(
             'res.country',  # Modèle Odoo
@@ -24,7 +18,6 @@ class WilayaController():
             [[['code', '=', codeCountryOdoo]]],
             {'fields': ['id']} 
         )
-        print( "id countryyyyyy===============================",idCountry)
 
         wilaya = odooDatabase.execute_kw(
             'res.country.state',  # Modèle Odoo
@@ -32,9 +25,6 @@ class WilayaController():
             [[['country_id', '=',idCountry[0]['id'] ]]],
             {'fields': ['id','name','code','pf_ids']} 
         )
-
-
-        
         
         try:    
             return wilaya

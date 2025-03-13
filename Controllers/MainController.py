@@ -12,7 +12,6 @@ class MainController():
     def get_actualite_events( request : Request, token : str):
         odooDatabase : OdooDatabase = request.app.state.odooDatabase
         user = TokenTools.check_token(token)
-        print("userrrrrrrrrrrrrrrrrrrrrr",user)
         if not user : 
             raise HTTPException(
                 status_code=401,  
@@ -25,9 +24,8 @@ class MainController():
             [[]],
             {'fields': ['id']} 
         )
-        print(category)
         l = [i['id'] for i in category]
-        print(l)
+        
 
         pp={}
         for i in l :
@@ -35,14 +33,14 @@ class MainController():
             'crm.mobile.category.item',  # Modèle Odoo
             'search_read',  # Méthode utilisée pour la recherche et la lecture
             [[['categ_id' , '=', i]]],
-            {'fields': ['id','name','categ_id','description']} 
+            {'fields': ['id','name','categ_id','description','image']} 
             )
             
             chain=actualite[0]['categ_id'][1]
             if chain:
                 pp[chain]=actualite
 
-        # print(pp)
+
         cc=[]
         try:    
             return pp
