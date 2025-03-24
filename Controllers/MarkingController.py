@@ -113,14 +113,6 @@ def create_todo_activity(request,odooDatabase:OdooDatabase,id_det,idStand):
 
 
 
-
-
-
-
-
-
-
-
 class MarkingController():
     
     @staticmethod # Ready
@@ -134,14 +126,14 @@ class MarkingController():
             )
 
         
-        cc = odooDatabase.execute_kw(
-            'images.magasins',  # Modèle Odoo
-            'search_read',  # Méthode utilisée pour la recherche et la lecture
-            [[]],
-            {'fields': ['id','name','image']} 
+        # cc = odooDatabase.execute_kw(
+        #     'images.magasins',  # Modèle Odoo
+        #     'search_read',  # Méthode utilisée pour la recherche et la lecture
+        #     [[]],
+        #     {'fields': ['id','name','image']} 
       
-        )
-        print ('ccccccccccccccccccccccccccccc' ,cc)
+        # )
+        # print ('ccccccccccccccccccccccccccccc' ,cc)
 
         all_lots = odooDatabase.execute_kw(
             'nomenclature.lots',  # Modèle Odoo

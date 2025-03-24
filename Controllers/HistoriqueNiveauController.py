@@ -24,7 +24,8 @@ class HistoriqueNiveauController():
             [[['partner_id', '=', id_det], ['state_niveau', '=', 'ok_passage']]],
             {'fields': ['id','date','niveau_old_id','action','niveau_new_id']} 
         )
-        pp = [{"name": i['niveau_old_id'][1], "date": i['date']} for i in histo_niveau]
+        print ( "batmanaaa trohhhhhhhhhhhhhhhhhhhhhh ",histo_niveau)
+        pp = [{"name": i['niveau_new_id'][1], "date": i['date']} for i in histo_niveau]
 
         data ={"historique_niveau":pp}
 

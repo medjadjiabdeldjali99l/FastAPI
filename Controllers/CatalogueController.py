@@ -18,7 +18,7 @@ class CatalogueController():
                 detail={"status": False, "error": "Token Invalide"}
             )
 
-        liste_cat=[9, 133, 1, 7, 8, 144, 128]
+        liste_cat=[9,7,8] 
         catalogs = odooDatabase.execute_kw(
             'product.category',  # Modèle Odoo
             'search_read',  # Méthode utilisée pour la recherche et la lecture
@@ -86,3 +86,5 @@ class CatalogueController():
             raise e
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+
+

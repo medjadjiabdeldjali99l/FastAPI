@@ -112,7 +112,7 @@ def create_record_in_new_table(odooDatabase : OdooDatabase, new_detaillant, phon
                 status_code=401,  
                 detail={"status": False, "error": "Erreur de création dans la nouvelle table"}
             )
-    return detNvlTable_id 
+    return detNvlTable_id , 
 
 def create_record_in_new_table_respartner(odooDatabase : OdooDatabase, new_detaillant, phone: Optional[str] = None):
     
@@ -199,6 +199,8 @@ class AuthentificationController():
                 ready_images.append(Image(id=image_id, image=image_url))
             
                 # Liste des champs à vérifier
+
+            
             fields_to_check = [
                 'id','name','telephone', 'name_magasin', 'street', 'email',
                 'categorie_id', 'state_id', 'commune_id', 'images_magasins_ids', 'reseau_sociaux_ids','new_tlp1'] #Ajouter fields localisation
@@ -463,6 +465,7 @@ class AuthentificationController():
         }
 
         filtered_vals = remove_none_values(vals)
+        print ("nommmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",filtered_vals )
         
 
         new_detaillant_id = odooDatabase.execute_kw( 'partner.candidate','create', [filtered_vals])

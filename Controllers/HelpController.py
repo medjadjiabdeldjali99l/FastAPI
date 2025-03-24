@@ -15,17 +15,16 @@ class HelpController():
         if not user : 
             raise HTTPException(
                 status_code=401,  
-                detail={"status": False, "error": "Tokennnnnnnnnnnnnnnnnnnnnnnnnnnn Invalide"}
+                detail={"status": False, "error": "Token Invalide"}
             )
-
-
 
         FAQ = odooDatabase.execute_kw(
             'faq.question',  # Modèle Odoo
             'search_read',  # Méthode utilisée pour la recherche et la lecture
             [[]],
-            {'fields': ['question','answer']} 
+            {'fields': ['question','answer','category_id']} 
         )
+        print( "snappppppppppppppppppppppppp",FAQ)
 
 
         objetTemplate = odooDatabase.execute_kw(
@@ -36,16 +35,10 @@ class HelpController():
         )
 
 
-
-
-
         helpCenterData=HelpCenter(
             objetEmail =objetTemplate if objetTemplate else None,
             Faq = FAQ if FAQ else None
         )
-
-        
-
 
         try:    
             return helpCenterData

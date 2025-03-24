@@ -55,7 +55,7 @@ class AnnuaireController():
             users_in_sup_group = odooDatabase.execute_kw(
                 'res.users', 'search_read',
                 [domain],  # Filtrer par le groupe
-                {'fields': ['id',  'login','region_id','pf_ids']}
+                {'fields': ['id',  'login','region_id','pf_ids','partner_id']}
             )
 
             wilaya = odooDatabase.execute_kw(
@@ -72,19 +72,23 @@ class AnnuaireController():
                             l.append(j['name'])
                     i['wilaya']=l
 
+            
             # Étape 3 : Récupérer les employés liés à ces utilisateurs
-            sup_user_ids = [user['id'] for user in users_in_sup_group]
-        
+            sup_user_ids = [user['partner_id'][0] for user in users_in_sup_group]
+            domain=[('id', 'in', sup_user_ids)]
+            if search:
+                domain.append(('name', 'ilike', search.upper()))
+
             sup_employees = odooDatabase.execute_kw(
-                'hr.employee', 'search_read',
-                [[('user_id', 'in', sup_user_ids)]],  # Associer employé à l'utilisateur
-                {'fields': ['id', 'name', 'job_title', 'user_id','work_email','work_location','telephone']}
+                'res.partner', 'search_read',
+                [domain], # Associer employé à l'utilisateur
+                {'fields': ['id', 'name', 'function', 'user_id','email','phone']}
             )
 
 
             for i in users_in_sup_group:
                 for j in sup_employees:
-                    if i['id']==j['user_id'][0]:
+                    if i['partner_id'][0]==j['id']:
                         if i['region_id']:
                             j['rg']=i['region_id'][1]
                             break
@@ -92,7 +96,7 @@ class AnnuaireController():
 
             for i in users_in_sup_group:
                 for j in sup_employees:
-                    if i['id']==j['user_id'][0]:
+                    if i['partner_id'][0]==j['id']:
                         j['region']=i['wilaya']
                         break
 
@@ -100,10 +104,9 @@ class AnnuaireController():
                 {
                     'name': employee['name'],
                     'id': employee['id'],
-                    'job_title': employee['job_title'],
-                    'work_email': employee['work_email'],
-                    'work_location': employee['work_location'],
-                    'telephone': employee['telephone'],
+                    'job_title': employee['function'],
+                    'work_email': employee['email'],
+                    'telephone': employee['phone'],
                     'region':employee['rg'],
                     'wilaya':employee['region']
                 }
@@ -143,7 +146,7 @@ class AnnuaireController():
             users_in_delegue_group = odooDatabase.execute_kw(
                 'res.users', 'search_read',
                 [domain],  # Filtrer par le groupe
-                {'fields': ['id',  'login','region_id','pf_ids']}
+                {'fields': ['id',  'login','region_id','pf_ids','partner_id']}
             )
 
             wilaya = odooDatabase.execute_kw(
@@ -162,28 +165,26 @@ class AnnuaireController():
 
             
             # Étape 3 : Récupérer les employés liés à ces utilisateurs
-            delegue_user_ids = [user['id'] for user in users_in_delegue_group]
-            domain=[('user_id', 'in', delegue_user_ids)]
+            delegue_user_ids = [user['partner_id'][0] for user in users_in_delegue_group]
+            domain=[('id', 'in', delegue_user_ids)]
             if search:
-                domain.append(('name', 'like', search.upper()))
+                domain.append(('name', 'ilike', search.upper()))
             delegue_employees = odooDatabase.execute_kw(
-                'hr.employee', 'search_read',
+                'res.partner', 'search_read',
                 [domain],  # Associer employé à l'utilisateur
-                {'fields': ['id', 'name', 'job_title', 'user_id','work_email','work_location','telephone']}
+                {'fields': ['id', 'name', 'function', 'user_id','email','phone']}
             )
-
-            
             
             for i in users_in_delegue_group:
                 for j in delegue_employees:
-                    if i['id']==j['user_id'][0]:
+                    if i['partner_id'][0]==j['id']:
                         if i['region_id']:
                             j['rg']=i['region_id'][1]
                             break
 
             for i in users_in_delegue_group:
                 for j in delegue_employees:
-                    if i['id']==j['user_id'][0]:
+                    if i['partner_id'][0]==j['id']:
                         j['region']=i['wilaya']
                         break
 
@@ -191,10 +192,9 @@ class AnnuaireController():
                 {
                     'name': employee['name'],
                     'id': employee['id'],
-                    'job_title': employee['job_title'],
-                    'work_email': employee['work_email'],
-                    'work_location': employee['work_location'],
-                    'telephone': employee['telephone'],
+                    'job_title': employee['function'],
+                    'work_email': employee['email'],
+                    'telephone': employee['phone'],
                     'region':employee['rg'],
                     'wilaya':employee['region'],
                 }
@@ -235,7 +235,7 @@ class AnnuaireController():
                 users = odooDatabase.execute_kw(
                     'res.users', 'search_read',
                     [domain],
-                    {'fields': ['id', 'login', 'region_id','pf_ids']}
+                    {'fields': ['id', 'login', 'region_id','pf_ids','partner_id']}
                 )
 
                 if not users:
@@ -261,27 +261,32 @@ class AnnuaireController():
                             i['wilaya']=l
                     
                     # Obtenir les employés associés aux utilisateurs trouvés
-                    user_ids = [user['id'] for user in users]
+                    user_ids = [user['partner_id'][0] for user in users]
 
-                    domain=[('user_id', 'in', user_ids)]
+                    domain=[('id', 'in', user_ids)]
                     if search:
                         domain.append(('name', 'like', search.upper()))
                     employees = odooDatabase.execute_kw(
-                        'hr.employee', 'search_read',
+                        'res.partner', 'search_read',
                         [domain],
-                        {'fields': ['id', 'name','user_id', 'job_title', 'work_email','work_location','telephone']}
+                        {'fields': ['id',  'name', 'function', 'user_id','email','phone']}
                     )
+                    
+                    for i in users :
+                        if not i['region_id']:
+                            print ( i)
+                    
 
                     for i in users:
                         for j in employees:
-                            if i['id']==j['user_id'][0]:
+                            if i['partner_id'][0]==j['id']:
                                 if i['region_id']:
                                     j['rg']=i['region_id'][1]
                                     break
 
                     for i in users:
                         for j in employees:
-                            if i['id']==j['user_id'][0]:
+                            if i['partner_id'][0]==j['id']:
                                 j['region']=i['wilaya']
                                 break
                         
@@ -291,10 +296,9 @@ class AnnuaireController():
                 {
                     'name': employee['name'],
                     'id': employee['id'],
-                    'job_title': employee['job_title'],
-                    'work_email': employee['work_email'],
-                    'work_location': employee['work_location'],
-                    'telephone': employee['telephone'],
+                    'job_title': employee['function'],
+                    'work_email': employee['email'],
+                    'telephone': employee['phone'],
                     'region':employee['rg'],
                     'wilaya' : employee['region'],
                 }

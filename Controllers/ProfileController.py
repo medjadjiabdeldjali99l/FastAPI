@@ -196,9 +196,9 @@ class ProfileController():
         if not token_data : 
             raise HTTPException(
                 status_code=401,  
-                detail={"status": False, "error": "Tokennnnnnnnnnnnnnnnnnnnnnnnnnnn Invalide"}
+                detail={"status": False, "error": "Token Invalide"}
         )
-        print ( "stringggg==============================================",image_data)
+        print ( "stringggg====================   c fait ",)
 
         user_id = token_data['id']
         odooDatabase: OdooDatabase = request.app.state.odooDatabase
@@ -206,6 +206,7 @@ class ProfileController():
             'id_user': user_id,
             'image': image_data,
         }])
+        print ( " fitnaaaaaaaaa",image_id)
         return {
             "status": True,
             "message": "Image ajoutée avec succès",
@@ -219,7 +220,7 @@ class ProfileController():
         if not token_data : 
             raise HTTPException(
                 status_code=401,  
-                detail={"status": False, "error": "Tokennnnnnnnnnnnnnnnnnnnnnnnnnnn Invalide"}
+                detail={"status": False, "error": "Token Invalide"}
         )
 
         odooDatabase: OdooDatabase = request.app.state.odooDatabase

@@ -175,7 +175,7 @@ class StandController():
             'sale.order.template',  # Modèle Odoo
             'search_read',  # Méthode utilisée pour la recherche et la lecture
             [[]],
-            {'fields': ['id','name','montant_min','image']} 
+            {'fields': ['id','name','image','description','number_of_articles','dimension']} 
       
         )
         
@@ -211,7 +211,7 @@ class StandController():
             'sale.order.template',  # Modèle Odoo
             'search_read',  # Méthode utilisée pour la recherche et la lecture
             [[('id','=',idStand)]],
-            {'fields': ['id','name','montant_min','sale_order_template_line_ids','ecart','total','sous_total1','sous_total2','sous_total3','nombre_article']}       
+            {'fields': ['id','name','montant_min','sale_order_template_line_ids','nombre_article']}       
         )
         if not all_plvp:
             raise HTTPException(
@@ -226,16 +226,22 @@ class StandController():
             'sale.order.template.line',  # Modèle Odoo
             'search_read',  # Méthode utilisée pour la recherche et la lecture
             [[('id','in',list_line),('check','=','oui')]],
-            {'fields': ['id','product_id','product_uom_qty','product_packaging','price_unit']} 
+            {'fields': ['id','product_id','product_uom_qty','product_packaging']} 
         )
+        # print("raoufffffffffffffffffffffffffffff",line_in_plvp )
+
+        # for i in line_in_plvp :
+        #     for j in :
+        #         if i['product_id'][0] == j['product_id'][0] :
+        #             print (i['product_id'][0] )
+
 
         descreption_lines_plvp = [
             {
                 'id': i['id'],
                 'product': i['product_id'][1],
                 'product_qty': i['product_uom_qty'],
-                'product_packaging': i['product_packaging'][1],
-                'price_unit': i['price_unit']
+                'product_packaging': i['product_packaging'][1]
             }
             for i in line_in_plvp
         ]
