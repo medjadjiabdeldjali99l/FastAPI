@@ -21,8 +21,9 @@ class ArticlesController():
                 status_code=401,  
                 detail={"status": False, "error": "Token Invalide"}
             )
+            #il faut ajouter la categorie auto avec published in mobil dans la table categorie
         #ajoute des filtre ici 
-        domain = [('sale_ok', '=', True)]
+        domain = [('sale_ok', '=', True),('published_in_mobile','=','True')]
         # domain = [('published_in_mobile','=','True')]   just il faut remplire la data 
         if id_cat:
             domain.append(('categ_id', '=', id_cat))
