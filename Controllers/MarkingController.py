@@ -139,7 +139,7 @@ class MarkingController():
             'nomenclature.lots',  # Modèle Odoo
             'search_read',  # Méthode utilisée pour la recherche et la lecture
             [[]],
-            {'fields': ['id','name','description','obligatoire']} 
+            {'fields': ['id','name','description','obligatoire','niveau_id','poids']} 
       
         )
         print ( all_lots)

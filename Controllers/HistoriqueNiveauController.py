@@ -24,51 +24,56 @@ class HistoriqueNiveauController():
             [[['partner_id', '=', id_det], ['state_niveau', '=', 'ok_passage']]],
             {'fields': ['id','date','niveau_old_id','action','niveau_new_id']} 
         )
-        print ( "batmanaaa trohhhhhhhhhhhhhhhhhhhhhh ",histo_niveau)
-        pp = [{"name": i['niveau_new_id'][1], "date": i['date']} for i in histo_niveau]
+        # print ( "batmanaaa trohhhhhhhhhhhhhhhhhhhhhh ",histo_niveau)
+        if histo_niveau :
+            print ( "batmanaaa trohhhhhhhhhhhhhhhhhhhhhh ",histo_niveau)
+            pp = [{"name": i['niveau_new_id'][1], "date": i['date']} for i in histo_niveau]
 
-        data ={"historique_niveau":pp}
+            data ={"historique_niveau":pp}
 
-        prochain=histo_niveau[-1]
-        
-        teste = odooDatabase.execute_kw(
-            'crm.niveau',  # Modèle Odoo
-            'search_read',  # Méthode utilisée pour la recherche et la lecture
-            [[["id","=",prochain['niveau_new_id'][0]]]],
-            {'fields': ['id','name','conditions_ids']} 
-        )
-        ll=teste[0]['conditions_ids']
 
-        condition = odooDatabase.execute_kw(
-            'crm.niveau.condition.passage',  # Modèle Odoo
-            'search_read',  # Méthode utilisée pour la recherche et la lecture
-            [[("id","in",ll)]],
-            {'fields': ['id','name','obligation_id','niveau_id']} 
-        )
+            prochain=histo_niveau[-1]
+            
+            teste = odooDatabase.execute_kw(
+                'crm.niveau',  # Modèle Odoo
+                'search_read',  # Méthode utilisée pour la recherche et la lecture
+                [[["id","=",prochain['niveau_new_id'][0]]]],
+                {'fields': ['id','name','conditions_ids']} 
+            )
+            ll=teste[0]['conditions_ids']
 
-        ll = [i['obligation_id'][0] for i in condition]
+            condition = odooDatabase.execute_kw(
+                'crm.niveau.condition.passage',  # Modèle Odoo
+                'search_read',  # Méthode utilisée pour la recherche et la lecture
+                [[("id","in",ll)]],
+                {'fields': ['id','name','obligation_id','niveau_id']} 
+            )
 
-        condition1 = odooDatabase.execute_kw(
-            'crm.niveau.condition.passage.obl',  # Modèle Odoo
-            'search_read',  # Méthode utilisée pour la recherche et la lecture
-            [[("id","in",ll)]],
-            {'fields': ['id','name','obligation']} 
-        )
+            ll = [i['obligation_id'][0] for i in condition]
 
-        pp=[]
-        for i in ll:
-            for j in condition1 :
-                if i == j['id']:
-                    if j['name']=='or' or j['name']== 'and':
-                        t={"name":"","descr":j['obligation']}
-                    else:
-                        t={"name":j['name'],"descr":j['obligation']}
-                    pp.append(t)
-        data['actions']=pp
+            condition1 = odooDatabase.execute_kw(
+                'crm.niveau.condition.passage.obl',  # Modèle Odoo
+                'search_read',  # Méthode utilisée pour la recherche et la lecture
+                [[("id","in",ll)]],
+                {'fields': ['id','name','obligation']} 
+            )
 
-        try:    
-            return data
-        except HTTPException as e:
-            raise e
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+            pp=[]
+            for i in ll:
+                for j in condition1 :
+                    if i == j['id']:
+                        if j['name']=='or' or j['name']== 'and':
+                            t={"name":"","descr":j['obligation']}
+                        else:
+                            t={"name":j['name'],"descr":j['obligation']}
+                        pp.append(t)
+            data['actions']=pp
+
+            try:    
+                return data
+            except HTTPException as e:
+                raise e
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=str(e))
+        else:
+            pass

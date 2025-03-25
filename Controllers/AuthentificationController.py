@@ -112,7 +112,7 @@ def create_record_in_new_table(odooDatabase : OdooDatabase, new_detaillant, phon
                 status_code=401,  
                 detail={"status": False, "error": "Erreur de création dans la nouvelle table"}
             )
-    return detNvlTable_id , 
+    return detNvlTable_id , plain_password
 
 def create_record_in_new_table_respartner(odooDatabase : OdooDatabase, new_detaillant, phone: Optional[str] = None):
     
@@ -137,7 +137,7 @@ def create_record_in_new_table_respartner(odooDatabase : OdooDatabase, new_detai
                 status_code=401,  
                 detail={"status": False, "error": "Erreur de création dans la nouvelle table"}
             )
-    return detNvlTable_id
+    return detNvlTable_id , plain_password
 
 
 class AuthentificationController():
@@ -399,7 +399,7 @@ class AuthentificationController():
         if data.phone != det_id[0]['phone'] :
             raise HTTPException(
                 status_code=422, 
-                detail="Numéro Telephone Erroné"
+                detail="Numéro Téléphone Erroné"
             )
        
         # Verifier si le numéro de téléphone est déjà utilisé ou si le code détaillant est déjà associé à un compte
@@ -418,7 +418,10 @@ class AuthentificationController():
             
             
         # Créer un enregistrement dans la nouvelle table
-        record_mobile_id = create_record_in_new_table_respartner(odooDatabase, det_id[0], phone=data.phone)
+        record_mobile_id ,passwordPlain = create_record_in_new_table_respartner(odooDatabase, det_id[0], phone=data.phone)
+
+        print ( "salahhhhhhhhhhhhhhhhhhhhhhhhhh",passwordPlain)
+
         detaillant_adher = odooDatabase.execute_kw('info.cnx', 'read', [[record_mobile_id], ['id','telephone','password','state']])
         
         if not record_mobile_id:
@@ -428,6 +431,7 @@ class AuthentificationController():
             )
         return {
             "status": True,
+            "password" : passwordPlain ,
             "message": "Votre mot de passe vous a été envoyé par SMS"
         }
 
@@ -483,7 +487,9 @@ class AuthentificationController():
         new_detaillant = odooDatabase.execute_kw('partner.candidate', 'read', [[new_detaillant_id], ['id']])[0]
 
         # Créer l'enregistrement dans la nouvelle table
-        detNvlTable_id = create_record_in_new_table(odooDatabase, new_detaillant, phone=data.phone_compte)
+        detNvlTable_id ,passwordPlain= create_record_in_new_table(odooDatabase, new_detaillant, phone=data.phone_compte)
+
+        print("salahhhhhhhhhhhhhhhhhhhhhhhh",passwordPlain)
 
         info_envoyer = odooDatabase.execute_kw('info.cnx', 'read', [[detNvlTable_id]])
         
@@ -495,6 +501,7 @@ class AuthentificationController():
 
         return {
             "status": True,
+            "password" : passwordPlain,
             "message": "Votre mot de passe et votre code détaillant vous ont été envoyé par SMS"
         }
 

@@ -11,6 +11,7 @@ class ProductsData(BaseModel):
     etoiles : int | None = None
     image : str | None = None
     img_url : str | None = None
+    descMobile : str | None = None 
 
 
     class Config:
