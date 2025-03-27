@@ -1,4 +1,6 @@
 from pydantic import BaseModel
+from Models.Conditionnement import Conditionnement
+from typing import Optional, List
 
 class ProductsData(BaseModel):
     id: int | None = None
@@ -12,7 +14,8 @@ class ProductsData(BaseModel):
     image : str | None = None
     img_url : str | None = None
     descMobile : str | None = None 
-
+    # cond :List[Conditionnement] | None =None
+    
 
     class Config:
         from_attributes = True  # Anciennement `orm_mode = True`

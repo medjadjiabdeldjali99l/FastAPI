@@ -17,3 +17,6 @@ async def my_products(request : Request,token:Annotated[str, Depends(oauth2_sche
     return ArticlesController.get_all_products(request=request, token=token,id_cat=id_cat,search=search,id_sur=id_sur ,id_paint=id_paint,etoile=etoile,new_product=new_product ,params=params)
 
 
+@router.get("/packaging")
+async def my_conditionement(request : Request ,token:Annotated[str, Depends(oauth2_scheme)],productId: int = Query(description="L'id doit être un entier")):
+    return ArticlesController.getConditionement(request=request, token=token ,productId=productId)
