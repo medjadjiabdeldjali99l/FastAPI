@@ -5,6 +5,7 @@ from Tools.TokenTools import TokenTools
 from datetime import datetime, timedelta
 import jwt
 import logging
+from Tools.ImageCompress import convert_base64_to_webp
 _logger = logging.getLogger(__name__)
 
 DELEGUE_GROUP_XML_ID = "crm_plv.group_plvp_commercial"
@@ -176,9 +177,13 @@ class StandController():
             'search_read',  # Méthode utilisée pour la recherche et la lecture
             [[]],
             {'fields': ['id','name','image','description','number_of_articles','dimension']} 
-      
         )
-        
+        if all_plvp:
+            for i in all_plvp:
+                if i['image']:
+                    base64_image =  i['image'] 
+                    i['image'] = convert_base64_to_webp(base64_image)
+            
 
         try:    
             return all_plvp
@@ -228,27 +233,16 @@ class StandController():
             [[('id','in',list_line),('check','=','oui')]],
             {'fields': ['id','product_id','product_uom_qty','product_packaging']} 
         )
-        # print("raoufffffffffffffffffffffffffffff",line_in_plvp )
-
-        # for i in line_in_plvp :
-        #     for j in :
-        #         if i['product_id'][0] == j['product_id'][0] :
-        #             print (i['product_id'][0] )
-
-
+    
         descreption_lines_plvp = [
             {
                 'id': i['id'],
                 'product': i['product_id'][1],
-                'product_qty': i['product_uom_qty'],
-                'product_packaging': i['product_packaging'][1]
+                'product_qty': i['product_uom_qty'] ,
+                'product_packaging': i['product_packaging'][1] if i['product_packaging'] else []
             }
             for i in line_in_plvp
         ]
-
-
-
-        
 
         try:    
             return descreption_lines_plvp

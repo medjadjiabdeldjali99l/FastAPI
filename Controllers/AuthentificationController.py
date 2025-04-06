@@ -157,6 +157,7 @@ class AuthentificationController():
 
 
         etatDeCnx = token_data['state']
+        print ( 'hamouddaaa',token_data['id'])
         user_1 = odooDatabase.execute_kw('info.cnx', 'read', [token_data['id']])
         if etatDeCnx == 'candidate' :
             user_2 = odooDatabase.execute_kw('partner.candidate', 'read', [user_1[0]['candidate_id'][0]], {'fields': ['name','categorie_id', 'commune_id', 'state_id','name_magasin','state','email','phone']})	
@@ -164,6 +165,7 @@ class AuthentificationController():
 
             ready_user = CondidateData(
                 id = user_2[0].get('id'),
+                idHelp=token_data['id'],
                 nom = user_2[0].get('name'),
                 tel = user_2[0].get('phone'),
                 raisonSociale = user_2[0].get('name_magasin') if user_2[0].get('name_magasin') else None ,
@@ -214,6 +216,7 @@ class AuthentificationController():
         
             ready_user = UserData(
                 id=full_user.get('id'),
+                idHelp=token_data['id'],
                 nom=full_user.get('name') if full_user.get('name') else None,
                 tel=full_user.get('telephone') if full_user.get('telephone') else None,
                 raisonSociale=full_user.get('name_magasin') if full_user.get('name_magasin') else None,
@@ -255,6 +258,7 @@ class AuthentificationController():
             )
 
         det = odooDatabase.execute_kw('info.cnx', 'search', [[['telephone', '=', UserLogin.phone]]])
+        print ( "103333333333333333333333333333",det)
 
       
 
@@ -303,6 +307,7 @@ class AuthentificationController():
 
             ready_user = CondidateData(
                 id = Condidat[0].get('id'),
+                idHelp=det[0],
                 nom = Condidat[0].get('name'),
                 tel = Condidat[0].get('phone'),
                 raisonSociale = Condidat[0].get('name_magasin') if Condidat[0].get('name_magasin') else None ,
@@ -355,6 +360,7 @@ class AuthentificationController():
         
             ready_user = UserData(
                 id = users[0]['partner_id'][0],
+                idHelp=det[0],
                 nom = detailant[0].get('name'),
                 tel = users[0].get('telephone'),
                 raisonSociale = detailant[0].get('name_magasin') if detailant[0].get('name_magasin') else None ,

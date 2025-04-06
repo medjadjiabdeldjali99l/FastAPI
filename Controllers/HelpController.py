@@ -55,7 +55,7 @@ class HelpController():
 
 
         nvlTableVals = {
-            "partner_id": idDetaillant,
+            "user_id": idDetaillant,
             "topic_id": idTopic , #hardcodeddd 
             "message": message.content,
         }

@@ -3,7 +3,30 @@ from database import OdooDatabase
 from Models import Token
 from Tools.TokenTools import TokenTools
 import jwt
+# from PIL import Image
+# import io
+# import base64
+from Tools.ImageCompress import convert_base64_to_webp
 
+# def convert_base64_to_webp(base64_string):
+#     # Supprimer le préfixe si présent (ex: "data:image/png;base64,")
+#     if "," in base64_string:
+#         base64_string = base64_string.split(",")[1]
+
+#     # Décoder le Base64 en bytes
+#     image_data = base64.b64decode(base64_string)
+    
+#     # Charger l'image avec PIL
+#     image = Image.open(io.BytesIO(image_data))
+    
+#     # Sauvegarder en WebP en mémoire
+#     webp_io = io.BytesIO()
+#     image.save(webp_io, format="WEBP")
+    
+#     # Récupérer l'image WebP en Base64
+#     webp_base64 = base64.b64encode(webp_io.getvalue()).decode("utf-8")
+    
+#     return webp_base64
 
 
 class MainController():
@@ -32,16 +55,20 @@ class MainController():
             actualite = odooDatabase.execute_kw(
             'crm.mobile.category.item',  # Modèle Odoo
             'search_read',  # Méthode utilisée pour la recherche et la lecture
-            [[['categ_id' , '=', i]]],
-            {'fields': ['id','name','categ_id','description','image']} 
+            [[['categ_id' , '=', i],['state','=','published']]],
+            {'fields': ['id','name','categ_id','description','image','state']} 
             )
-            
-            chain=actualite[0]['categ_id'][1]
-            if chain:
-                pp[chain]=actualite
+            if actualite :
+                # print ( " adel7A99999999999999" , actualite)
+                chain=actualite[0]['categ_id'][1]
+                for img in actualite:
+                    base64_image =  img['image'] # Une chaîne base64 valide ici
+                    # print(get_image_size(base64_image))
+                    img['image'] = convert_base64_to_webp(base64_image)
+                if chain:
+                    pp[chain]=actualite
 
 
-        cc=[]
         try:    
             return pp
         except HTTPException as e:

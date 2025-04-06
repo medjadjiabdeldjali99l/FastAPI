@@ -81,7 +81,7 @@ class ArticlesController():
                 typeSurface =i['surface_type'][1] if i['surface_type'] else None,
                 typePeinture=i['paint_type'][1] if i['paint_type'] else None,
                 etoiles=int(i['product_score'] if i['product_score'] else 1 ),
-                # image = i['image_1920'] if i['image_1920'] else None ,
+                image = i['image_1920'] if i['image_1920'] else None ,
                 descMobile =i['description_mobile']if  i['description_mobile'] else None,
                 #img_url=image_url if image_url else None
                 # cond=i['cond']if i['cond'] else None,

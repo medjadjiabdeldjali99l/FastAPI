@@ -5,6 +5,7 @@ from Models.Image import Image
 
 class UserData(BaseModel):
     id: Optional[int] = None
+    idHelp: int = None
     nom: Optional[str] = None
     tel: Optional[str] = None
     raisonSociale: Optional[str] = None
@@ -30,6 +31,7 @@ class UserData(BaseModel):
 
 class CondidateData(BaseModel):
     id: Optional[int] = None
+    idHelp: int = None
     nom: Optional[str] = None
     tel: Optional[str] = None
     natureCommerce: Optional[str] = None
