@@ -93,7 +93,7 @@ def create_record_in_new_table(odooDatabase : OdooDatabase, new_detaillant, phon
     # Crée un enregistrement dans la nouvelle table avec les détails du détaillant.
 
     plain_password=Password.get_random_string(8)
-    print ("password plain adhhh =============================================",plain_password)
+    # print ("password plain adhhh =============================================",plain_password)
     hashed_password = Password.get_password_hash(plain_password)
     # hashed_password = plain_password   #
     
@@ -119,7 +119,7 @@ def create_record_in_new_table_respartner(odooDatabase : OdooDatabase, new_detai
     # Crée un enregistrement dans la nouvelle table avec les détails du détaillant.
 
     plain_password=Password.get_random_string(8)
-    print ("password plainn inscr==============================================",plain_password)
+    # print ("password plainn inscr==============================================",plain_password)
     hashed_password = Password.get_password_hash(plain_password)
     # hashed_password = plain_password   #
     
@@ -157,7 +157,7 @@ class AuthentificationController():
 
 
         etatDeCnx = token_data['state']
-        print ( 'hamouddaaa',token_data['id'])
+        # print ( 'hamouddaaa',token_data['id'])
         user_1 = odooDatabase.execute_kw('info.cnx', 'read', [token_data['id']])
         if etatDeCnx == 'candidate' :
             user_2 = odooDatabase.execute_kw('partner.candidate', 'read', [user_1[0]['candidate_id'][0]], {'fields': ['name','categorie_id', 'commune_id', 'state_id','name_magasin','state','email','phone']})	
@@ -258,7 +258,7 @@ class AuthentificationController():
             )
 
         det = odooDatabase.execute_kw('info.cnx', 'search', [[['telephone', '=', UserLogin.phone]]])
-        print ( "103333333333333333333333333333",det)
+        # print ( "103333333333333333333333333333",det)
 
       
 
@@ -426,7 +426,7 @@ class AuthentificationController():
         # Créer un enregistrement dans la nouvelle table
         record_mobile_id ,passwordPlain = create_record_in_new_table_respartner(odooDatabase, det_id[0], phone=data.phone)
 
-        print ( "salahhhhhhhhhhhhhhhhhhhhhhhhhh",passwordPlain)
+        # print ( "salahhhhhhhhhhhhhhhhhhhhhhhhhh",passwordPlain)
 
         detaillant_adher = odooDatabase.execute_kw('info.cnx', 'read', [[record_mobile_id], ['id','telephone','password','state']])
         
@@ -475,7 +475,7 @@ class AuthentificationController():
         }
 
         filtered_vals = remove_none_values(vals)
-        print ("nommmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",filtered_vals )
+        # print ("nommmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",filtered_vals )
         
 
         new_detaillant_id = odooDatabase.execute_kw( 'partner.candidate','create', [filtered_vals])
@@ -495,7 +495,7 @@ class AuthentificationController():
         # Créer l'enregistrement dans la nouvelle table
         detNvlTable_id ,passwordPlain= create_record_in_new_table(odooDatabase, new_detaillant, phone=data.phone_compte)
 
-        print("salahhhhhhhhhhhhhhhhhhhhhhhh",passwordPlain)
+        # print("salahhhhhhhhhhhhhhhhhhhhhhhh",passwordPlain)
 
         info_envoyer = odooDatabase.execute_kw('info.cnx', 'read', [[detNvlTable_id]])
         

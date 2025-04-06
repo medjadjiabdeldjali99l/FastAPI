@@ -24,9 +24,9 @@ class HistoriqueNiveauController():
             [[['partner_id', '=', id_det], ['state_niveau', '=', 'ok_passage']]],
             {'fields': ['id','date','niveau_old_id','action','niveau_new_id']} 
         )
-        print ( "batmanaaa trohhhhhhhhhhhhhhhhhhhhhh ",histo_niveau)
+        # print ( "batmanaaa trohhhhhhhhhhhhhhhhhhhhhh ",histo_niveau)
         if histo_niveau :
-            print ( "batmanaaa trohhhhhhhhhhhhhhhhhhhhhh ",histo_niveau)
+            # print ( "batmanaaa trohhhhhhhhhhhhhhhhhhhhhh ",histo_niveau)
 
             pp = [{"name": i['niveau_new_id'][1], "date": i['date']} for i in histo_niveau]
 
@@ -34,7 +34,7 @@ class HistoriqueNiveauController():
 
 
             prochain=histo_niveau[-1]
-            print("baynaa kter",prochain)
+            # print("baynaa kter",prochain)
             
             teste = odooDatabase.execute_kw(
                 'crm.niveau',  # Modèle Odoo
@@ -85,7 +85,7 @@ class HistoriqueNiveauController():
                 [[["id","=",1]]],
                 {'fields': ['id','name','conditions_ids']} 
             )
-            print ( "rachidddddddddddddddddddddddddd",teste)
+            # print ( "rachidddddddddddddddddddddddddd",teste)
             ll=teste[0]['conditions_ids']
 
             condition = odooDatabase.execute_kw(

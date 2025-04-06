@@ -142,7 +142,7 @@ class MarkingController():
             {'fields': ['id','name','description','obligatoire','niveau_id','poids']} 
       
         )
-        print ( all_lots)
+        # print ( all_lots)
         
         try:    
             return all_lots

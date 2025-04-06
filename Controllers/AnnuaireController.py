@@ -272,9 +272,9 @@ class AnnuaireController():
                         {'fields': ['id',  'name', 'function', 'user_id','email','phone']}
                     )
                     
-                    for i in users :
-                        if not i['region_id']:
-                            print ( i)
+                    # for i in users :
+                    #     if not i['region_id']:
+                    #         print ( i)
                     
 
                     for i in users:

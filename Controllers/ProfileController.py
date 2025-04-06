@@ -198,7 +198,7 @@ class ProfileController():
                 status_code=401,  
                 detail={"status": False, "error": "Token Invalide"}
         )
-        print ( "stringggg====================   c fait ",)
+        # print ( "stringggg====================   c fait ",)
 
         user_id = token_data['id']
         odooDatabase: OdooDatabase = request.app.state.odooDatabase
@@ -206,7 +206,7 @@ class ProfileController():
             'id_user': user_id,
             'image': image_data,
         }])
-        print ( " fitnaaaaaaaaa",image_id)
+        # print ( " fitnaaaaaaaaa",image_id)
         return {
             "status": True,
             "message": "Image ajoutée avec succès",

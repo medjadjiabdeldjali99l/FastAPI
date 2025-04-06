@@ -24,7 +24,7 @@ class HelpController():
             [[]],
             {'fields': ['question','answer','category_id']} 
         )
-        print( "snappppppppppppppppppppppppp",FAQ)
+        # print( "snappppppppppppppppppppppppp",FAQ)
 
 
         objetTemplate = odooDatabase.execute_kw(
