@@ -21,31 +21,42 @@ class HistoriqueController():
         points = odooDatabase.execute_kw(
             'suivi.points.pdd',  # Modèle Odoo
             'search_read',  # Méthode utilisée pour la recherche et la lecture
-            [[['partner_id', '=', id_det]]],
-            {'fields': ['action_id','date_action']} 
+            [[['partner_id', '=', id_det],['state','=','done']]],
+            {'fields': ['action_id','date_action','points']} 
         )
+        # print("swayliiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii", points, len (points))
 
-        l = [i['action_id'][0] for i in points]
+        for i in points:
+            i['code']="Action "+ str(i['action_id'][0])
+            i['name']=i['action_id'][1]
+
+
+       
+
+
+        # l = [i['action_id'][0] for i in points]
 
 
 
-        action = odooDatabase.execute_kw(
-            'crm.actions.pdd',  # Modèle Odoo
-            'search_read',  # Méthode pour rechercher et lire
-            [[['id', 'in', l]]],  # Domaine vide -> sélectionne tous les enregistrements
-            {'fields': ['code', 'name','points']}  # Champs à récupérer
-        )
-        for i in action:
-            for j in points:
-                if j['action_id'][0]==i['id']:
-                    i['date_action']=j['date_action']
+        # action = odooDatabase.execute_kw(
+        #     'crm.actions.pdd',  # Modèle Odoo
+        #     'search_read',  # Méthode pour rechercher et lire
+        #     [[['id', 'in', l]]],  # Domaine vide -> sélectionne tous les enregistrements
+        #     {'fields': ['id','code','points']}  # Champs à récupérer
+        # )
+
+
+        # for i in action:
+        #     for j in points:
+        #         if j['action_id'][0]==i['id']:
+        #             i['date_action']=j['date_action']
         
         
 
 
 
         try:    
-            return action
+            return points
         except HTTPException as e:
             raise e
         except Exception as e:
