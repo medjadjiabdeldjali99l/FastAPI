@@ -56,15 +56,23 @@ class MainController():
             'crm.mobile.category.item',  # Modèle Odoo
             'search_read',  # Méthode utilisée pour la recherche et la lecture
             [[['categ_id' , '=', i],['state','=','published']]],
-            {'fields': ['id','name','categ_id','description','image','state']} 
+            {'fields': ['id','name','categ_id','description','state']} 
             )
             if actualite :
+
+
+
                 # print ( " adel7A99999999999999" , actualite)
                 chain=actualite[0]['categ_id'][1]
-                for img in actualite:
-                    base64_image =  img['image'] # Une chaîne base64 valide ici
-                    # print(get_image_size(base64_image))
-                    img['image'] = convert_base64_to_webp(base64_image)
+                session_id = odooDatabase.session
+
+                for i in actualite :
+                    i['image'] = f"{odooDatabase.base_url}web/image/crm.mobile.category.item/{i['id']}/image?session_id={session_id}"
+                
+                # for img in actualite:
+                #     base64_image =  img['image'] # Une chaîne base64 valide ici
+                #     # print(get_image_size(base64_image))
+                #     img['image'] = convert_base64_to_webp(base64_image)
                 if chain:
                     pp[chain]=actualite
 

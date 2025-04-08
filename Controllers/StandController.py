@@ -176,13 +176,18 @@ class StandController():
             'sale.order.template',  # Modèle Odoo
             'search_read',  # Méthode utilisée pour la recherche et la lecture
             [[]],
-            {'fields': ['id','name','image','description','number_of_articles','dimension']} 
+            {'fields': ['id','name','description','number_of_articles','dimension']} 
         )
         if all_plvp:
-            for i in all_plvp:
-                if i['image']:
-                    base64_image =  i['image'] 
-                    i['image'] = convert_base64_to_webp(base64_image)
+
+            session_id = odooDatabase.session
+            for i in all_plvp :
+                    i['image'] = f"{odooDatabase.base_url}web/image/sale.order.template/{i['id']}/image?session_id={session_id}"
+
+            # for i in all_plvp:
+            #     if i['image']:
+            #         base64_image =  i['image'] 
+            #         i['image'] = convert_base64_to_webp(base64_image)
             
 
         try:    

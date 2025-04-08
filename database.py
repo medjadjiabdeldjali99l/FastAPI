@@ -1,7 +1,7 @@
 import xmlrpc.client
 from Models.OddoDataBase import OdooCredentials
 from xmlrpc.client import ServerProxy
-
+import requests
 
 odooCredentials = OdooCredentials()
 
@@ -23,6 +23,17 @@ class OdooDatabase:
         base_url = self.execute_kw('ir.config_parameter', 'get_param',['web.base.url'])
         
         self.base_url = base_url
+
+        session_res = requests.post(f"{self.url}/web/session/authenticate", json={
+            "jsonrpc": "2.0",
+            "params": {
+                "db": self.db,
+                "login": self.username,
+                "password": self.password
+            }
+        })
+
+        self.session = session_res.cookies.get("session_id")  # 💡 Voilà le session_id
         
 
     def execute_kw(self, *args):
@@ -38,6 +49,5 @@ class OdooDatabase:
             return partner[0]  # Retourne les informations du premier partenaire trouvé
         else:
             return "Aucun partenaire trouvé avec ce numéro de téléphone."
-
 
 
