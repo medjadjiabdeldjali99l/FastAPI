@@ -67,7 +67,7 @@ class MainController():
                 session_id = odooDatabase.session
 
                 for i in actualite :
-                    i['image'] = f"{odooDatabase.base_url}web/image/crm.mobile.category.item/{i['id']}/image?session_id={session_id}"
+                    i['image'] = f"{odooDatabase.base_url}/web/image/crm.mobile.category.item/{i['id']}/image?session_id={session_id}"
                 
                 # for img in actualite:
                 #     base64_image =  img['image'] # Une chaîne base64 valide ici

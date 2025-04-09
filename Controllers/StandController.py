@@ -139,9 +139,10 @@ class StandController():
             'crm.plv',  # Modèle Odoo
             'search_read',  # Méthode utilisée pour la recherche et la lecture
             [[['partner_id', '=', id_det]]],
-            {'fields': ['id','name','partner_id','delegue_id','espace_type_id']} 
+            {'fields': ['id','name','partner_id','delegue_id','espace_type_id','type_plvp_id']} 
       
         )
+        #prochainment recuprer le nom de type_plvp_id
 
         
 
@@ -182,7 +183,7 @@ class StandController():
 
             session_id = odooDatabase.session
             for i in all_plvp :
-                    i['image'] = f"{odooDatabase.base_url}web/image/sale.order.template/{i['id']}/image?session_id={session_id}"
+                    i['image'] = f"{odooDatabase.base_url}/web/image/sale.order.template/{i['id']}/image?session_id={session_id}"
 
             # for i in all_plvp:
             #     if i['image']:

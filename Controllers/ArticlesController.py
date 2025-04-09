@@ -57,7 +57,7 @@ class ArticlesController():
         session_id = odooDatabase.session
 
         for i in product:
-            i['image_url'] = f"{odooDatabase.base_url}web/image/product.template/{i['id']}/image_1920?session_id={session_id}"
+            i['image_url'] = f"{odooDatabase.base_url}/web/image/product.template/{i['id']}/image_1920?session_id={session_id}"
 
 
 

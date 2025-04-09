@@ -34,7 +34,9 @@ app.include_router(router=router)
 def read_root():
     return {
         "Status": "Success",
-        "Message": "Guerrout"
+        "Message": "Guerrout",
+        "version":"",
+        "date":"",
     }
 
 # if __name__ == '__main__':
