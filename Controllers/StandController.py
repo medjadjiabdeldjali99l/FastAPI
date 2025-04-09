@@ -74,7 +74,7 @@ def get_users_same_region_portfolio(id_det,odooDatabase:OdooDatabase):
     return user_ids, partner_name
 
 def get_espace_type_name(espace_type_id,odooDatabase:OdooDatabase):
-    espace = odooDatabase.execute_kw('res.partner.espace.type', 'read', [espace_type_id], {'fields': ['name']})
+    espace = odooDatabase.execute_kw('sale.order.template', 'read', [espace_type_id], {'fields': ['name']})
     return espace[0]['name'] if espace else "Présentoir inconnu"
 
 def create_todo_activity(request,odooDatabase:OdooDatabase,id_det,idStand):
@@ -98,7 +98,7 @@ def create_todo_activity(request,odooDatabase:OdooDatabase,id_det,idStand):
                 'res_model_id': model_id,
                 'res_id': id_det,
                 'activity_type_id': activity_type_id,
-                'summary': 'Commande Présentoir à préparer rachiiiiiiiiiid',
+                'summary': 'Commande Présentoir à préparer',
                 'note': f"""
                     <p><strong>Détaillant:</strong> {partner_name}</p>
                     <p><strong>Présentoir demandé:</strong> {espace_name}</p>
@@ -111,7 +111,6 @@ def create_todo_activity(request,odooDatabase:OdooDatabase,id_det,idStand):
         return activity_ids
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 
 

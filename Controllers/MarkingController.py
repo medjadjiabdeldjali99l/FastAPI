@@ -140,8 +140,17 @@ class MarkingController():
             'search_read',  # Méthode utilisée pour la recherche et la lecture
             [[]],
             {'fields': ['id','name','description','obligatoire','niveau_id','poids']} 
-      
         )
+
+        # liste_visites=[]
+        # visites = odooDatabase.execute_kw(
+        #     'crm.visite',  # Modèle Odoo
+        #     'search_read',  # Méthode utilisée pour la recherche et la lecture
+        #     [[("partner_id","=",15733),("num_visite","=",1)]],
+        #     {'fields': ['id','name','num_visite','support_ids']} 
+        # )
+        # print ( "sahbiiiiiiiiiiiiiiiiii================================",visites)
+
         # print ( all_lots)
         
         try:    

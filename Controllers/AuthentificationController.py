@@ -300,7 +300,7 @@ class AuthentificationController():
             Condidat = odooDatabase.execute_kw('partner.candidate', 'read', [user['candidate_id'][0]], {'fields': ['name','categorie_id', 'commune_id', 'state_id','name_magasin','state','email','phone']})
             dat=TokenData(id=user["id"],telephone=user['telephone'], state=user['state']).dict()
 
-            access_token_expires = timedelta(minutes=30)
+            access_token_expires = timedelta(days=1) 
             token= TokenTools.generate_token(data=dat,expires_delta=access_token_expires)
 
             yy=TokenTools.check_token(token)
@@ -333,7 +333,7 @@ class AuthentificationController():
 
             dat=TokenData(id=user["id"],telephone=user['telephone'], state=user['state']).dict()
      
-            access_token_expires = timedelta(minutes=30)
+            access_token_expires = timedelta(days=1) 
             token= TokenTools.generate_token(data=dat,expires_delta=access_token_expires)
             yy=TokenTools.check_token(token)
             
