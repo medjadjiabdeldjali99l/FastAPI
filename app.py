@@ -11,7 +11,6 @@ app = FastAPI(
 )
 
 
-
 @app.on_event("startup")
 def startup_event():
     app.state.odooDatabase = OdooDatabase()  # Assure-toi que cette classe est définie quelque part

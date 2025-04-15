@@ -344,6 +344,7 @@ class AuthentificationController():
                 image_url = f"{odooDatabase.base_url}/web/image/images.magasins/{image_id}/image"
                 ready_images.append(Image(id=image_id, image=image_url))
             
+            print("imaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggge", ready_images)
 
             
             social_media = odooDatabase.execute_kw('reseau.sociaux', 'search_read',[[['iduser', '=', users[0]['id']]],['id','type','lien_profil']])

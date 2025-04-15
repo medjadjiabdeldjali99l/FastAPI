@@ -294,13 +294,13 @@ class AnnuaireController():
             
             annuaire_data= [
                 {
-                    'name': employee['name'],
-                    'id': employee['id'],
-                    'job_title': employee['function'],
-                    'work_email': employee['email'],
-                    'telephone': employee['phone'],
-                    'region':employee['rg'],
-                    'wilaya' : employee['region'],
+                    'name': employee['name'] if employee['name'] else None ,
+                    'id': employee.get('id') if employee.get('id') else None ,
+                    'job_title': employee.get('function') if employee.get('function') else None,
+                    'work_email': employee.get('email') if employee.get('email') else None,
+                    'telephone': employee.get('phone') if employee.get('phone') else None ,
+                    'region':employee.get('rg') if employee.get('rg') else None ,
+                    'wilaya' : employee.get('region') if employee.get('region') else None ,
                 }
                 for employee in employees
             ]
