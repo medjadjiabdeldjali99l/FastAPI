@@ -10,7 +10,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 @router.get("/my_stand")
-async def my_stand(request : Request,token:Annotated[str, Depends(oauth2_scheme)],id_det: int = Query(None, description="L'id doit être un entier")):
+async def my_stand(request : Request,token:Annotated[str, Depends(oauth2_scheme)],id_det: int = Query(..., description="L'id doit être un entier")):
     return StandController.get_all_stand(request=request, token=token,id_det=id_det)
 
 

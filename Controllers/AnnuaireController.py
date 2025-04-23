@@ -75,7 +75,7 @@ class AnnuaireController():
             
             # Étape 3 : Récupérer les employés liés à ces utilisateurs
             sup_user_ids = [user['partner_id'][0] for user in users_in_sup_group]
-            domain=[('id', 'in', sup_user_ids)]
+            domain=[('id', 'in', sup_user_ids),('function','!=',False)]
             if search:
                 domain.append(('name', 'ilike', search.upper()))
 
@@ -100,18 +100,22 @@ class AnnuaireController():
                         j['region']=i['wilaya']
                         break
 
+            for i in sup_employees:
+                print ( "suppppppppppppppppppppppppppppppppppppppppp",i)
+
             annuaire_data= [
                 {
                     'name': employee['name'],
                     'id': employee['id'],
                     'job_title': employee['function'],
                     'work_email': employee['email'],
-                    'telephone': employee['phone'],
-                    'region':employee['rg'],
-                    'wilaya':employee['region']
+                    'telephone': employee.get('phone') if employee.get('phone') else None ,
+                    'region':employee.get('rg') if employee.get('rg') else None , 
+                    'wilaya':employee.get('region') if employee.get('region') else None,
                 }
                 for employee in sup_employees
             ]
+
             try:    
                 return annuaire_data
             except HTTPException as e:
@@ -166,7 +170,7 @@ class AnnuaireController():
             
             # Étape 3 : Récupérer les employés liés à ces utilisateurs
             delegue_user_ids = [user['partner_id'][0] for user in users_in_delegue_group]
-            domain=[('id', 'in', delegue_user_ids)]
+            domain=[('id', 'in', delegue_user_ids),('function','!=',False)]
             if search:
                 domain.append(('name', 'ilike', search.upper()))
             delegue_employees = odooDatabase.execute_kw(
@@ -194,9 +198,9 @@ class AnnuaireController():
                     'id': employee['id'],
                     'job_title': employee['function'],
                     'work_email': employee['email'],
-                    'telephone': employee['phone'],
-                    'region':employee['rg'],
-                    'wilaya':employee['region'],
+                    'telephone': employee.get('phone') if employee.get('phone') else None ,
+                    'region':employee.get('rg') if employee.get('rg') else None ,
+                    'wilaya':employee.get('region') if employee.get('region') else None,
                 }
                 for employee in delegue_employees
             ]
@@ -229,6 +233,12 @@ class AnnuaireController():
                         [[['country_id', '=',62 ],['id','=',idWilaya]]],
                         {'fields': ['id','name','code','pf_ids']} 
                     )
+                    print ("wilayaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",wilaya)
+                    if 'pf_ids' in wilaya[0]:
+                        raise HTTPException(
+                        status_code=422,
+                        detail="Wilaya non affectée à un portefeuille"
+                        )
 
                     domain.append(('pf_ids','in',wilaya[0]['pf_ids'][0]))
                     
@@ -258,12 +268,12 @@ class AnnuaireController():
                             for j in wilaya :
                                 if k in j['pf_ids']:
                                     l.append(j['name'])
-                            i['wilaya']=l
-                    
+                        i['wilaya']=l
+                                             
                     # Obtenir les employés associés aux utilisateurs trouvés
                     user_ids = [user['partner_id'][0] for user in users]
 
-                    domain=[('id', 'in', user_ids)]
+                    domain=[('id', 'in', user_ids),('function','!=',False)]
                     if search:
                         domain.append(('name', 'like', search.upper()))
                     employees = odooDatabase.execute_kw(

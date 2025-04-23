@@ -1,7 +1,7 @@
 from Controllers.ProfileController import ProfileController
 
 
-from fastapi import APIRouter, Request ,Query ,Depends
+from fastapi import APIRouter, Request ,Query ,Depends ,UploadFile, File
 from typing import Annotated
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
@@ -32,8 +32,8 @@ async def deleteSocialMedia(request : Request, token:Annotated[str, Depends(oaut
     return ProfileController.delete_social_media(request=request, token=token, id=data.id)
 
 @router.post("/add-image")
-async def addImageMagasin(request : Request, token:Annotated[str, Depends(oauth2_scheme)], data : AddImage):
-    return ProfileController.add_image(request=request, token=token, image_data= data.image )
+async def addImageMagasin(request : Request, token:Annotated[str, Depends(oauth2_scheme)], image : UploadFile = File(...)):
+    return ProfileController.add_image(request=request, token=token, image_data= image )
 
 @router.post("/delete-image")
 async def deleteImageMagasin(request : Request, token:Annotated[str, Depends(oauth2_scheme)], data : ImageDelete):

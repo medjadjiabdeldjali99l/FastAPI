@@ -1,10 +1,13 @@
-from fastapi import Request, HTTPException, status
+from fastapi import Request, HTTPException, status ,UploadFile, File
 from database import OdooDatabase
 
 from Tools.TokenTools import TokenTools
 from Models.UserUpdate import *
 
 from Models.SocialMedia import SocialMedia
+from PIL import Image
+import base64
+from io import BytesIO
 # import base64
 # from PIL import Image
 # import requests
@@ -17,6 +20,8 @@ from Models.SocialMedia import SocialMedia
 
 
 from datetime import datetime, timedelta, timezone
+
+
 
 DELEGUE_GROUP_XML_ID="crm_plv.group_plvp_commercial"
 SUP_GROUP_XML_ID="crm_plv.group_plvp_superviseur"
@@ -78,7 +83,29 @@ def get_delegues_for_detailant(detailant_id ,odooDatabase):
         "delegues": matched_delegues
     }
 
+def convert_to_base64(file: UploadFile) -> str:
+    content = file.file.read()
+    encoded = base64.b64encode(content).decode("utf-8")
+    return encoded
 
+
+def compress_base64_image(base64_str: str, max_size: tuple = (800, 800), quality: int = 70) -> str:
+    # 1. Décoder le base64 vers bytes
+    image_bytes = base64.b64decode(base64_str)
+    image = Image.open(BytesIO(image_bytes))
+
+    # 2. Redimensionner si trop grand
+    image.thumbnail(max_size)
+
+    # 3. Réenregistrer avec qualité réduite
+    buffer = BytesIO()
+    image.save(buffer, format='JPEG', optimize=True, quality=quality)
+    buffer.seek(0)
+
+    # 4. Réencoder en base64
+    compressed_bytes = buffer.read()
+    compressed_base64 = base64.b64encode(compressed_bytes).decode('utf-8')
+    return compressed_base64
 
 class ProfileController():
 
@@ -189,8 +216,51 @@ class ProfileController():
             "message": "Réseau supprimé avec succès"
         }
     
+    # @staticmethod # Ready
+    # def add_image(request: Request, token: str, image_data: str):
+
+    #     token_data = TokenTools.check_token(token)
+    #     if not token_data : 
+    #         raise HTTPException(
+    #             status_code=401,  
+    #             detail={"status": False, "error": "Token Invalide"}
+    #     )
+    #     # print ( "stringggg================================================================================== c fait ",image_data[0:100])
+        
+    #     # imageData = base64.b64decode(image_data)
+    #     # print(imageData[:100])
+
+    #     # # Ouvrir l'image avec Pillow
+    #     # image = Image.open(BytesIO(imageData))
+    #     # image = Image.open(BytesIO(imageData))
+    #     # image.save("test.jpg")  # Pour être sûr que le fichier est bien là
+    #     # image.show() 
+
+    #     # print ( "====================open==============================================")
+
+    #     user_id = token_data['id']
+    #     compressed_image_data = compress_base64_image(image_data)
+    #     odooDatabase: OdooDatabase = request.app.state.odooDatabase
+    #     image_id = odooDatabase.execute_kw('images.magasins', 'create', [{
+    #         'id_user': user_id,
+    #         'image': compressed_image_data,
+    #     }])
+    #     # print ( " fitnaaaaaaaaa",image_id)
+    #     return {
+    #         "status": True,
+    #         "message": "Image ajoutée avec succès",
+    #         "image_id": image_id
+    #     }
+    
+
+
     @staticmethod # Ready
-    def add_image(request: Request, token: str, image_data: str):
+    def add_image(request: Request, token: str, image_data:UploadFile = File(...) ):
+
+        
+        
+
+
 
         token_data = TokenTools.check_token(token)
         if not token_data : 
@@ -198,13 +268,29 @@ class ProfileController():
                 status_code=401,  
                 detail={"status": False, "error": "Token Invalide"}
         )
-        # print ( "stringggg====================   c fait ",)
+        # print ( "stringggg================================================================================== c fait ",image_data[0:100])
+        
+        # imageData = base64.b64decode(image_data)
+        # print(imageData[:100])
+
+        # # Ouvrir l'image avec Pillow
+        # image = Image.open(BytesIO(imageData))
+        # image = Image.open(BytesIO(imageData))
+        # image.save("test.jpg")  # Pour être sûr que le fichier est bien là
+        # image.show() 
+
+        # print ( "====================open==============================================")
+        print ( image_data)
+        content = image_data.file.read()
+        base64_str = base64.b64encode(content).decode("utf-8")
+
 
         user_id = token_data['id']
+        compressed_image_data = compress_base64_image(base64_str)
         odooDatabase: OdooDatabase = request.app.state.odooDatabase
         image_id = odooDatabase.execute_kw('images.magasins', 'create', [{
             'id_user': user_id,
-            'image': image_data,
+            'image': compressed_image_data,
         }])
         # print ( " fitnaaaaaaaaa",image_id)
         return {
@@ -215,6 +301,7 @@ class ProfileController():
     
     @staticmethod # Ready
     def delete_image(request : Request, token : str, id : int ):
+        print ( "=====================================hada id ",id)
 
         token_data = TokenTools.check_token(token)
         if not token_data : 

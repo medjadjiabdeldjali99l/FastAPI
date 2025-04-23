@@ -1,6 +1,6 @@
 from Controllers.MarkingController import MarkingController
-from fastapi import APIRouter, Request ,Query ,Depends
-from typing import Annotated
+from fastapi import APIRouter, Request ,Query ,Depends 
+from typing import Annotated,Optional,List
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 
@@ -15,8 +15,13 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 @router.get("/all_marking")
-async def all_markings(request : Request,token:Annotated[str, Depends(oauth2_scheme)]):
-    return MarkingController.get_all_markings(request=request, token=token)
+async def all_markings(request : Request,token:Annotated[str, Depends(oauth2_scheme)] , niveauDet: int = Query(None, description="L'id doit être un entier")):
+    return MarkingController.get_all_markings(request=request, token=token, niveauDet=niveauDet)
+
+@router.post("/marquage_order")
+async def marking_order(request : Request,idDet: int = Query(None, description="L'id doit être un entier"),listemarquages: Optional[List[str]] = Query(default=None, description="Liste des marquages")):
+    return MarkingController.get_marking_order(request=request, idDet=idDet,listemarquages=listemarquages)
+
 
 # @router.post("/marking_order")
 # async def marking_order(request : Request,id_det: int = Query(None, description="L'id doit être un entier"),idStand: int = Query(None, description="L'id doit être un entier")):

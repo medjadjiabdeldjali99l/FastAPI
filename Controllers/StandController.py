@@ -3,6 +3,7 @@ from database import OdooDatabase
 from Models import Token
 from Tools.TokenTools import TokenTools
 from datetime import datetime, timedelta
+
 import jwt
 import logging
 from Tools.ImageCompress import convert_base64_to_webp
@@ -138,26 +139,56 @@ class StandController():
             'crm.plv',  # Modèle Odoo
             'search_read',  # Méthode utilisée pour la recherche et la lecture
             [[['partner_id', '=', id_det]]],
-            {'fields': ['id','name','partner_id','delegue_id','espace_type_id','type_plvp_id']} 
+            {'fields': ['id','name','type_plvp_id']} 
       
         )
-        #prochainment recuprer le nom de type_plvp_id
+        # print ( "===============================================================",plvp)
+        # prochainment recuprer le nom de type_plvp_id
 
         
 
-        l = [i['espace_type_id'][1] for i in plvp if 'espace_type_id' in i and i['espace_type_id']]
-
+        # l = [i['type_plvp_id'][1] for i in plvp if 'type_plvp_id' in i and i['type_plvp_id']]
+        # print ( "kkkkkkkkkkkkkkkkkkkkkkk",l)
    
         
-        u = [{'name': i} for i in l]
-        
+        # u = [{'name': i} for i in l]
+
+        listePlvpDet = [i['type_plvp_id'][0] for i in plvp if 'type_plvp_id' in i and i['type_plvp_id']]
+        # print("idddddddddddddddddddddddddddddddddddddd",l)
+
+
+        all_plvp = odooDatabase.execute_kw(
+            'sale.order.template',  # Modèle Odoo
+            'search_read',  # Méthode utilisée pour la recherche et la lecture
+            [[('id','in',listePlvpDet)]],
+            {'fields': ['id','name','description','number_of_articles','dimension','montant_min']} 
+        )
+        if all_plvp:
+
+            session_id = odooDatabase.session
+            for i in all_plvp :
+                    i['image'] = f"{odooDatabase.base_url}/web/image/sale.order.template/{i['id']}/image?session_id={session_id}"
+
+            # for i in all_plvp:
+            #     if i['image']:
+            #         base64_image =  i['image'] 
+            #         i['image'] = convert_base64_to_webp(base64_image)
+            
 
         try:    
-            return u
+            return all_plvp
         except HTTPException as e:
             raise e
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+        
+
+        # try:    
+        #     return u
+        # except HTTPException as e:
+        #     raise e
+        # except Exception as e:
+        #     raise HTTPException(status_code=500, detail=str(e))
 
 
 
@@ -176,7 +207,7 @@ class StandController():
             'sale.order.template',  # Modèle Odoo
             'search_read',  # Méthode utilisée pour la recherche et la lecture
             [[]],
-            {'fields': ['id','name','description','number_of_articles','dimension']} 
+            {'fields': ['id','name','description','number_of_articles','dimension','montant_min']} 
         )
         if all_plvp:
 
@@ -238,11 +269,12 @@ class StandController():
             [[('id','in',list_line),('check','=','oui')]],
             {'fields': ['id','product_id','product_uom_qty','product_packaging']} 
         )
-    
+        print ( "==================================================mounir====",line_in_plvp)
         descreption_lines_plvp = [
             {
                 'id': i['id'],
-                'product': i['product_id'][1],
+                'ref': i['product_id'][1].split('[')[1].split(']')[0] if '[' in i['product_id'][1] and ']' in i['product_id'][1] else "",
+                'product': i['product_id'][1].split(']')[1].lstrip(' ').rstrip(' *'),
                 'product_qty': i['product_uom_qty'] ,
                 'product_packaging': i['product_packaging'][1] if i['product_packaging'] else []
             }

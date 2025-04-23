@@ -1,10 +1,12 @@
-from fastapi import Request ,HTTPException
+from fastapi import Request ,HTTPException 
+from typing import Optional,List
 from database import OdooDatabase
 from Models import Token
 from Tools.TokenTools import TokenTools
 from datetime import datetime, timedelta
 import jwt
 import logging
+from Tools.ImageCompress import convert_base64_to_webp
 _logger = logging.getLogger(__name__)
 
 DELEGUE_GROUP_XML_ID = "crm_plv.group_plvp_commercial"
@@ -72,14 +74,23 @@ def get_users_same_region_portfolio(id_det,odooDatabase:OdooDatabase):
 
     return user_ids, partner_name
 
-def get_espace_type_name(espace_type_id,odooDatabase:OdooDatabase):
-    espace = odooDatabase.execute_kw('res.partner.espace.type', 'read', [espace_type_id], {'fields': ['name']})
-    return espace[0]['name'] if espace else "Présentoir inconnu"
 
-def create_todo_activity(request,odooDatabase:OdooDatabase,id_det,idStand):
+def get_espace_type_name(marquage_id,odooDatabase:OdooDatabase):
+    liste_marquage_ids=[]
+    print("************************",marquage_id)
+    for i in marquage_id:
+        print("hada id marquage",i)
+        espace = odooDatabase.execute_kw('nomenclature.lots', 'read', [int(i)], {'fields': ['name']})
+        liste_marquage_ids.append(espace)
+    names = [item[0]['name'] for item in liste_marquage_ids]
+    print ( "m9asssssssssssssssssssss",names)
+
+    return names
+
+def create_todo_activity(request,odooDatabase:OdooDatabase,idDet,listemarquages):
     try:
-        user_ids, partner_name = get_users_same_region_portfolio(id_det,odooDatabase)
-        espace_name = get_espace_type_name(idStand ,odooDatabase)
+        user_ids, partner_name = get_users_same_region_portfolio(idDet,odooDatabase)
+        espace_name = get_espace_type_name(listemarquages ,odooDatabase)
 
         if not user_ids:
             raise HTTPException(status_code=404, detail="Aucun utilisateur correspondant trouvé")
@@ -95,12 +106,12 @@ def create_todo_activity(request,odooDatabase:OdooDatabase,id_det,idStand):
         for user_id in user_ids:
             activity_id = odooDatabase.execute_kw('mail.activity', 'create', [{
                 'res_model_id': model_id,
-                'res_id': id_det,
+                'res_id': idDet,
                 'activity_type_id': activity_type_id,
-                'summary': 'Commande Présentoir à préparer rachiiiiiiiiiid',
+                'summary': 'Commande Marquage à préparer',
                 'note': f"""
                     <p><strong>Détaillant:</strong> {partner_name}</p>
-                    <p><strong>Présentoir demandé:</strong> {espace_name}</p>
+                    <p><strong>Marquage demandé:</strong> {espace_name}</p>
                 """,
                 'user_id': user_id,
                 'date_deadline': deadline_date,
@@ -113,10 +124,17 @@ def create_todo_activity(request,odooDatabase:OdooDatabase,id_det,idStand):
 
 
 
+
+
+
+
+
+
+
 class MarkingController():
-    
+    #jai ajouter le niveau id il reste juste implementation des condition et de cote front 
     @staticmethod # Ready
-    def get_all_markings( request : Request, token : str):
+    def get_all_markings( request : Request, token : str ,niveauDet:int):
         odooDatabase : OdooDatabase = request.app.state.odooDatabase
         user = TokenTools.check_token(token)
         if not user : 
@@ -125,7 +143,7 @@ class MarkingController():
                 detail={"status": False, "error": "Token Invalide"}
             )
 
-        
+        print ( " niveau id============================================================== ",niveauDet)
         # cc = odooDatabase.execute_kw(
         #     'images.magasins',  # Modèle Odoo
         #     'search_read',  # Méthode utilisée pour la recherche et la lecture
@@ -134,25 +152,42 @@ class MarkingController():
       
         # )
         # print ('ccccccccccccccccccccccccccccc' ,cc)
+        
+
+        # all_lots = odooDatabase.execute_kw(
+        #     'nomenclature.lots',  # Modèle Odoo
+        #     'search_read',  # Méthode utilisée pour la recherche et la lecture
+        #     [[('poids','!=',1.0),('niveau_id','<',niveauDet),('niveau_id','!=',0)]],
+        #     {'fields': ['id','name','description','obligatoire','niveau_id','poids']} 
+        # )
+        # all_lots = odooDatabase.execute_kw(
+        #     'nomenclature.lots',
+        #     'search_read',
+        #     [[
+        #         '|',
+        #         '&',
+        #         ('poids', '!=', 1.0),
+        #         ('niveau_id', '<', niveauDet+1),
+        #         ('niveau_id', '!=', False)
+        #     ]],
+        #     {'fields': ['id', 'name', 'description', 'obligatoire', 'niveau_id', 'poids']}
+        # )
 
         all_lots = odooDatabase.execute_kw(
-            'nomenclature.lots',  # Modèle Odoo
-            'search_read',  # Méthode utilisée pour la recherche et la lecture
-            [[]],
-            {'fields': ['id','name','description','obligatoire','niveau_id','poids']} 
+            'nomenclature.lots',
+            'search_read',
+            [[
+                '|',
+                ('niveau_id', '<=', niveauDet + 1),
+                ('niveau_id', '=', False)
+            ]],
+            {'fields': ['id', 'name', 'description', 'obligatoire', 'niveau_id', 'poids']}
         )
 
-        # liste_visites=[]
-        # visites = odooDatabase.execute_kw(
-        #     'crm.visite',  # Modèle Odoo
-        #     'search_read',  # Méthode utilisée pour la recherche et la lecture
-        #     [[("partner_id","=",15733),("num_visite","=",1)]],
-        #     {'fields': ['id','name','num_visite','support_ids']} 
-        # )
-        # print ( "sahbiiiiiiiiiiiiiiiiii================================",visites)
 
-        # print ( all_lots)
-        
+        print (len(all_lots),"mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm")
+
+ 
         try:    
             return all_lots
         except HTTPException as e:
@@ -161,4 +196,24 @@ class MarkingController():
             raise HTTPException(status_code=500, detail=str(e))
 
 
+
+
+
+    @staticmethod # Ready
+    def get_marking_order(request : Request, idDet : int, listemarquages : Optional[List[str]]):
+        odooDatabase : OdooDatabase = request.app.state.odooDatabase
+        
+        print ( "==========================================================================*******==========================",idDet,listemarquages)
+        if listemarquages and len(listemarquages) == 1 and ',' in listemarquages[0]:
+            listemarquages = listemarquages[0].split(',')
+        print("conversationnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn.",listemarquages)
+
+        activity_ids = create_todo_activity(request ,odooDatabase,idDet ,listemarquages)
+        return {"message": "Activités créées avec succès", "activity_ids": activity_ids}
+
+
+
+
+        
+        
     

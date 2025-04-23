@@ -15,6 +15,7 @@ class ArticlesController():
     def get_all_products( request : Request, token :Token ,id_cat:int, search:str,id_sur:int ,id_paint:int,etoile:int,new_product:bool ,params:Params ):
         
         odooDatabase : OdooDatabase = request.app.state.odooDatabase
+        print ( "''''''''''''''''==================================='''''''''''",id_cat,id_sur,id_paint,etoile,new_product)
 
         user = TokenTools.check_token(token)
         if not user : 
@@ -52,7 +53,7 @@ class ArticlesController():
         )
 
         if not product:
-            raise HTTPException(status_code=404, detail="No products found")
+            raise HTTPException(status_code=422, detail="No products found")
 
         session_id = odooDatabase.session
 
@@ -140,9 +141,12 @@ class ArticlesController():
             [[("product_id" , "=",productId)]], 
             {'fields': ['id','name','qty']} 
         )
+        filtered = [item for item in packag if item['name'] != 'crochet']
+
+        print(filtered)
         
         try:    
-            return packag
+            return filtered
         except HTTPException as e:
             raise e
         except Exception as e:

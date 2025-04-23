@@ -33,11 +33,20 @@ class HelpController():
             [[ ]],
             {'fields': ['name']} 
         )
+        url_video=odooDatabase.execute_kw(
+            'faq.category',  # Modèle Odoo
+            'search_read',  # Méthode utilisée pour la recherche et la lecture
+            [[('id','=',3)]],
+            {'fields': ['url']} 
+        )
+        print("uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu",url_video)
 
 
         helpCenterData=HelpCenter(
             objetEmail =objetTemplate if objetTemplate else None,
-            Faq = FAQ if FAQ else None
+            Faq = FAQ if FAQ else None,
+            urlVid='djadjo'
+            
         )
 
         try:    

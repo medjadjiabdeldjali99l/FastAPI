@@ -248,7 +248,7 @@ class AuthentificationController():
     @staticmethod # Ready
     def login(request: Request,UserLogin:dict):
         odooDatabase : OdooDatabase = request.app.state.odooDatabase
-
+        
         bloque = odooDatabase.execute_kw('info.cnx', 'search', [[['telephone', '=', UserLogin.phone],['active', '=', "False"]]])
 
         if not bloque:
@@ -333,7 +333,7 @@ class AuthentificationController():
 
             dat=TokenData(id=user["id"],telephone=user['telephone'], state=user['state']).dict()
      
-            access_token_expires = timedelta(days=1) 
+            access_token_expires = timedelta(days=30) 
             token= TokenTools.generate_token(data=dat,expires_delta=access_token_expires)
             yy=TokenTools.check_token(token)
             
@@ -512,155 +512,170 @@ class AuthentificationController():
             "message": "Votre mot de passe et votre code détaillant vous ont été envoyé par SMS"
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    @staticmethod # Ready
-    def motDePasseOublie(request: Request, data : ForgotPwd) :
-        odooDatabase : OdooDatabase = request.app.state.odooDatabase
-
-        # Step 1: Find the requesting user in Odoo (info.cnx)
-        user = odooDatabase.execute_kw( "info.cnx", "search_read",
-                                [[["telephone", "=", data.phone]]], {"fields": ["id", "login", "telephone"]})
-
-        if not user:
+    @staticmethod
+    def motDePasseOublie(request: Request, data: ForgotPwd):
+        odooDatabase: OdooDatabase = request.app.state.odooDatabase
+
+        # Étape 1 : Trouver l'utilisateur dans `info.cnx`
+        user_data = odooDatabase.execute_kw(
+            "info.cnx", "search_read",
+            [[["telephone", "=", data.phone]]],
+            {"fields": ["id", "login", "telephone", "candidate_id", "partner_id"]}
+        )
+
+        if not user_data:
             raise HTTPException(status_code=404, detail="User not found")
 
+        user = user_data[0]
+        info_cnx_id = user["id"]
 
-        info_cnx_id = user[0]["id"]
+        # Étape 2 : Récupérer les noms du candidat et du partenaire en une seule requête
+        record_ids = []
+        if user.get("candidate_id"):
+            record_ids.append(("partner.candidate", user["candidate_id"][0]))
+        if user.get("partner_id"):
+            record_ids.append(("res.partner", user["partner_id"][0]))
 
-        # Step 2: Get `res_model_id` for `info.cnx`
-        model_ids = odooDatabase.execute_kw("ir.model", "search_read",
-                                    [[["model", "=", "info.cnx"]]], {"fields": ["id"]})
+        record_names = {}
+        if record_ids:
+            for model, rec_id in record_ids:
+                records = odooDatabase.execute_kw(model, "read", [[rec_id]], {"fields": ["name"]})
+                if records:
+                    record_names[model] = records[0]["name"]
 
-        res_model_id = model_ids[0]["id"] if model_ids else None
+        user_name = record_names.get("partner.candidate") or record_names.get("res.partner") or "Unknown"
 
-        if not res_model_id:
-            raise HTTPException(status_code=400, detail="No valid model found in Odoo.")
+        # Étape 3 : Récupérer `res_model_id` et `activity_type_id` en une seule requête
+        models_data = odooDatabase.execute_kw(
+            "ir.model", "search_read",
+            [[["model", "=", "info.cnx"]]],
+            {"fields": ["id"]}
+        )
 
-        # Step 3: Get `activity_type_id` (default activity type)
-        activity_type_ids = odooDatabase.execute_kw("mail.activity.type", "search_read",
-                                            [[["category", "=", "default"]]], {"fields": ["id"]})
-        activity_type_id = activity_type_ids[0]["id"] if activity_type_ids else None
+        activity_type_data = odooDatabase.execute_kw(
+            "mail.activity.type", "search_read",
+            [[["category", "=", "default"]]],
+            {"fields": ["id"]}
+        )
 
-        if not activity_type_id:
-            raise HTTPException(status_code=400, detail="No valid activity type found in Odoo.")
+        if not models_data or not activity_type_data:
+            raise HTTPException(status_code=400, detail="Required models not found in Odoo.")
 
-        # Step 4: Get ERP Manager Group ID using `ir.model.data`
-        group_data = odooDatabase.execute_kw("ir.model.data", "search_read",
-                                    [[["module", "=", "base"], ["name", "=", "group_erp_manager"]]],
-                                    {"fields": ["res_id"]})
+        res_model_id = models_data[0]["id"]
+        activity_type_id = activity_type_data[0]["id"]
+
+        # Étape 4 : Récupérer le groupe ERP Manager et ses utilisateurs en une seule requête
+        group_data = odooDatabase.execute_kw(
+            "ir.model.data", "search_read",
+            [[["module", "=", "base"], ["name", "=", "group_erp_manager"]]],
+            {"fields": ["res_id"]}
+        )
 
         if not group_data:
-            raise HTTPException(status_code=404, detail="ERP Manager group not found")
+            raise HTTPException(status_code=422, detail="ERP Manager group not found")
 
-        group_id = group_data[0]["res_id"]  # Extract actual group ID
+        group_id = group_data[0]["res_id"]
 
-        # Step 5: Get All Users in the ERP Manager Group
-        erp_managers = odooDatabase.execute_kw("res.users", "search_read",
-                                        [[["groups_id", "in", [group_id]]]], {"fields": ["id", "email", "name"]})
+        erp_managers = odooDatabase.execute_kw(
+            "res.users", "search_read",
+            [[["groups_id", "in", [group_id]]]],
+            {"fields": ["id"]}
+        )
 
         if not erp_managers:
-            raise HTTPException(status_code=400, detail="No ERP managers found in the group.")
+            raise HTTPException(status_code=400, detail="No ERP managers found.")
 
-        # Step 7: Create an Activity in Odoo for All ERP Managers
-        for manager in erp_managers:
-            odooDatabase.execute_kw("mail.activity", "create", [{
-                "res_model_id": res_model_id,
-                "res_id": info_cnx_id,
-                "activity_type_id": activity_type_id,
-                "summary": f"Demande de réinitialisation du mot de passe ({user[0]['login']})",
-                "note": f"""
-                    <p><b>Utilisateur :</b> {user[0]['login']}<br>
-                    <b>Téléphone :</b> {user[0]['telephone']}<br>
-                    <b>Action requise :</b> Générer un nouveau mot de passe et l'envoyer.</p>
-                """,
-                "user_id": manager["id"],
-            }])
-        
+        manager_ids = [manager["id"] for manager in erp_managers]
+
+        # Étape 5 : Création des activités en une seule requête
+        activities = [{
+            "res_model_id": res_model_id,
+            "res_id": info_cnx_id,
+            "activity_type_id": activity_type_id,
+            "summary": f"Demande de réinitialisation du mot de passe ({user_name})",
+            "note": f"""
+                <p><b>Utilisateur :</b> {user_name}<br>
+                <b>Téléphone :</b> {user["telephone"]}<br>
+                <b>Action requise :</b> Générer un nouveau mot de passe et l'envoyer.</p>
+            """,
+            "user_id": manager_id,
+        } for manager_id in manager_ids]
+
+        odooDatabase.execute_kw("mail.activity", "create", [activities])
 
         return {
             "status": True,
             "message": "Votre nouveau mot de passe vous a été envoyé par SMS"
         }
+
+    # @staticmethod # Ready
+    # def motDePasseOublie(request: Request, data : ForgotPwd) :
+    #     odooDatabase : OdooDatabase = request.app.state.odooDatabase
+
+    #     # Step 1: Find the requesting user in Odoo (info.cnx)
+    #     user = odooDatabase.execute_kw( "info.cnx", "search_read",
+    #                             [[["telephone", "=", data.phone]]], {"fields": ["id", "login", "telephone"]})
+    #     print ( " adreb el betttttttttttttttttt",user)
+
+    #     if not user:
+    #         raise HTTPException(status_code=404, detail="User not found")
+
+
+    #     info_cnx_id = user[0]["id"]
+
+    #     # Step 2: Get `res_model_id` for `info.cnx`
+    #     model_ids = odooDatabase.execute_kw("ir.model", "search_read",
+    #                                 [[["model", "=", "info.cnx"]]], {"fields": ["id"]})
+
+    #     res_model_id = model_ids[0]["id"] if model_ids else None
+
+    #     if not res_model_id:
+    #         raise HTTPException(status_code=400, detail="No valid model found in Odoo.")
+
+    #     # Step 3: Get `activity_type_id` (default activity type)
+    #     activity_type_ids = odooDatabase.execute_kw("mail.activity.type", "search_read",
+    #                                         [[["category", "=", "default"]]], {"fields": ["id"]})
+    #     activity_type_id = activity_type_ids[0]["id"] if activity_type_ids else None
+
+    #     if not activity_type_id:
+    #         raise HTTPException(status_code=400, detail="No valid activity type found in Odoo.")
+
+    #     # Step 4: Get ERP Manager Group ID using `ir.model.data`
+    #     group_data = odooDatabase.execute_kw("ir.model.data", "search_read",
+    #                                 [[["module", "=", "base"], ["name", "=", "group_erp_manager"]]],
+    #                                 {"fields": ["res_id"]})
+
+    #     if not group_data:
+    #         raise HTTPException(status_code=404, detail="ERP Manager group not found")
+
+    #     group_id = group_data[0]["res_id"]  # Extract actual group ID
+
+    #     # Step 5: Get All Users in the ERP Manager Group
+    #     erp_managers = odooDatabase.execute_kw("res.users", "search_read",
+    #                                     [[["groups_id", "in", [group_id]]]], {"fields": ["id", "email", "name"]})
+
+    #     if not erp_managers:
+    #         raise HTTPException(status_code=400, detail="No ERP managers found in the group.")
+
+    #     # Step 7: Create an Activity in Odoo for All ERP Managers
+    #     for manager in erp_managers:
+    #         odooDatabase.execute_kw("mail.activity", "create", [{
+    #             "res_model_id": res_model_id,
+    #             "res_id": info_cnx_id,
+    #             "activity_type_id": activity_type_id,
+    #             "summary": f"Demande de réinitialisation du mot de passe ({user[0]['login']})",
+    #             "note": f"""
+    #                 <p><b>Utilisateur :</b> {user[0]['login']}<br>
+    #                 <b>Téléphone :</b> {user[0]['telephone']}<br>
+    #                 <b>Action requise :</b> Générer un nouveau mot de passe et l'envoyer.</p>
+    #             """,
+    #             "user_id": manager["id"],
+    #         }])
+        
+
+    #     return {
+    #         "status": True,
+    #         "message": "Votre nouveau mot de passe vous a été envoyé par SMS"
+    #     }
 
         

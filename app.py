@@ -4,12 +4,17 @@ from Routes import router
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from database import OdooDatabase
+from datetime import datetime
+
 
 app = FastAPI(
     title="Mon API Errafik",
     description="API protégée par token",
 )
 
+
+API_VERSION = "v1.0.13"
+RELEASE_DATE = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 @app.on_event("startup")
 def startup_event():
@@ -32,10 +37,15 @@ app.include_router(router=router)
 @app.get("/")
 def read_root():
     return {
-        "Status": "Success",
-        "Message": "Guerrout",
-        "version":"",
-        "date":"",
+        "Status": "success",
+        "title": "Miniros Secured API",
+    }
+
+@app.get("/version")
+def reed_version():
+    return {
+        "version": API_VERSION,
+        "date": RELEASE_DATE,
     }
 
 # if __name__ == '__main__':
