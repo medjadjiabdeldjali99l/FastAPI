@@ -34,3 +34,16 @@ async def adhesion(request: Request, user : AdhererUser):
 @router.post("/mot_de_passe_oublie")
 async def motDePasseOublie (request: Request, data : ForgotPwd):
     return AuthentificationController.motDePasseOublie(request=request,data=data)
+
+
+@router.post("/frgtpassword")
+async def ml (request: Request, data : ForgotPwd):
+    return AuthentificationController.mdpoublier(request=request,data=data)
+
+@router.post("/verifaypassword")
+async def mll (request: Request, data : OTPVerify):
+    return AuthentificationController.verify_otp(request=request,data=data)
+
+@router.post("/newpassword")
+async def mlll (request: Request, data : NewPassword ):
+    return AuthentificationController.newpassword(request=request,data=data)

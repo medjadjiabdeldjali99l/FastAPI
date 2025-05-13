@@ -37,6 +37,7 @@ class ProductsData(BaseModel):
     image: Optional[str] = None
     img_url: Optional[str] = None
     descMobile: Optional[str] = None
+    nvProduct:Optional[bool] = None
     cond: Optional[List[Conditionnement]] = None  # Packaging info
 
     class Config:

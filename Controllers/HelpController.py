@@ -45,7 +45,7 @@ class HelpController():
         helpCenterData=HelpCenter(
             objetEmail =objetTemplate if objetTemplate else None,
             Faq = FAQ if FAQ else None,
-            urlVid='djadjo'
+            urlVid=url_video[0].get('url') if url_video[0].get('url') else '', 
             
         )
 

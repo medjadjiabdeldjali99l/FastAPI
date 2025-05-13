@@ -5,6 +5,7 @@ from fastapi_pagination import Page, paginate ,Params
 from Models.Params import CustomParams
 from typing import Annotated
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from Models.FavorisDeletReq import FavorisDeleteRequest
 
 
 
@@ -20,3 +21,23 @@ async def my_products(request : Request,token:Annotated[str, Depends(oauth2_sche
 @router.get("/packaging")
 async def my_conditionement(request : Request ,token:Annotated[str, Depends(oauth2_scheme)],productId: int = Query(description="L'id doit être un entier")):
     return ArticlesController.getConditionement(request=request, token=token ,productId=productId)
+
+
+@router.post("/add_favoris")
+async def add_product_favoris(request : Request ,token:Annotated[str, Depends(oauth2_scheme)],idProduct: int = Query(description="L'id doit être un entier"),idDet:int = Query(description="L'id doit être un entier")):
+    return ArticlesController.add_product_fav(request=request, token=token ,idProduct=idProduct,idDet=idDet)
+
+
+@router.delete("/delete_favoris")
+async def delete_product_favoris(request : Request ,token:Annotated[str, Depends(oauth2_scheme)],payload:FavorisDeleteRequest):
+    return ArticlesController.delete_product_fav(request=request, token=token ,payload=payload)
+
+@router.get("/products_favoris")
+async def myproductfavoris(request : Request ,token:Annotated[str, Depends(oauth2_scheme)],idDet: int = Query(description="L'id doit être un entier"),params: CustomParams = Depends()) -> Page[ProductsData]:
+    return ArticlesController.productsfav(request=request, token=token ,idDet=idDet, params=params)
+
+
+
+@router.get("/id_products_favoris")
+async def idmyproductfavoris(request : Request ,token:Annotated[str, Depends(oauth2_scheme)],idDet: int = Query(description="L'id doit être un entier")):
+    return ArticlesController.idproductsfav(request=request, token=token ,idDet=idDet)

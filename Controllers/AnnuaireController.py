@@ -50,6 +50,13 @@ class AnnuaireController():
                     [[['country_id', '=',62 ],['id','=',idWilaya]]],
                     {'fields': ['id','name','code','pf_ids']} 
                 )
+                if 'pf_ids' in wilaya[0]:
+                    if not wilaya[0]['pf_ids']:
+                        # print("15maisssssssssssssssssssssssssssssssssssssssssssssssssss")
+                        raise HTTPException(
+                        status_code=422,
+                        detail="Wilaya non affectée à un portefeuille"
+                        )
                 # domain.append(tuple(wilaya[0]['pf_ids']))
                 domain.append(('pf_ids','in',wilaya[0]['pf_ids'][0]))
             users_in_sup_group = odooDatabase.execute_kw(
@@ -142,6 +149,13 @@ class AnnuaireController():
                     [[['country_id', '=',62 ],['id','=',idWilaya]]],
                     {'fields': ['id','name','code','pf_ids']} 
                 )
+                if 'pf_ids' in wilaya[0]:
+                    if not wilaya[0]['pf_ids']:
+                        # print("15maisssssssssssssssssssssssssssssssssssssssssssssssssss")
+                        raise HTTPException(
+                        status_code=422,
+                        detail="Wilaya non affectée à un portefeuille"
+                        )
 
                 domain.append(('pf_ids','in',wilaya[0]['pf_ids'][0]))
 
@@ -233,12 +247,14 @@ class AnnuaireController():
                         [[['country_id', '=',62 ],['id','=',idWilaya]]],
                         {'fields': ['id','name','code','pf_ids']} 
                     )
-                    print ("wilayaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",wilaya)
+                    # print ("wilayaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",wilaya)
                     if 'pf_ids' in wilaya[0]:
-                        raise HTTPException(
-                        status_code=422,
-                        detail="Wilaya non affectée à un portefeuille"
-                        )
+                        if not wilaya[0]['pf_ids']:
+                            # print("15maisssssssssssssssssssssssssssssssssssssssssssssssssss")
+                            raise HTTPException(
+                            status_code=422,
+                            detail="Wilaya non affectée à un portefeuille"
+                            )
 
                     domain.append(('pf_ids','in',wilaya[0]['pf_ids'][0]))
                     

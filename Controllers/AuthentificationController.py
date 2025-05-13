@@ -24,6 +24,12 @@ from datetime import datetime, timedelta, timezone
 from passlib.exc import UnknownHashError
 
 
+import random
+import time
+import redis
+
+r = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
+
 DELEGUE_GROUP_XML_ID="crm_plv.group_plvp_commercial"
 SUP_GROUP_XML_ID="crm_plv.group_plvp_superviseur"
 
@@ -159,6 +165,12 @@ class AuthentificationController():
         etatDeCnx = token_data['state']
         # print ( 'hamouddaaa',token_data['id'])
         user_1 = odooDatabase.execute_kw('info.cnx', 'read', [token_data['id']])
+        if not user_1:
+            raise HTTPException(
+                status_code=401,  
+                detail={"status": False, "error": "Token Invalide"}
+        )
+
         if etatDeCnx == 'candidate' :
             user_2 = odooDatabase.execute_kw('partner.candidate', 'read', [user_1[0]['candidate_id'][0]], {'fields': ['name','categorie_id', 'commune_id', 'state_id','name_magasin','state','email','phone']})	
       
@@ -592,7 +604,7 @@ class AuthentificationController():
             "res_model_id": res_model_id,
             "res_id": info_cnx_id,
             "activity_type_id": activity_type_id,
-            "summary": f"Demande de réinitialisation du mot de passe ({user_name})",
+            "summary": f"Demande de réinitialisation du mot de passe ({user_name}).",
             "note": f"""
                 <p><b>Utilisateur :</b> {user_name}<br>
                 <b>Téléphone :</b> {user["telephone"]}<br>
@@ -608,74 +620,147 @@ class AuthentificationController():
             "message": "Votre nouveau mot de passe vous a été envoyé par SMS"
         }
 
-    # @staticmethod # Ready
-    # def motDePasseOublie(request: Request, data : ForgotPwd) :
-    #     odooDatabase : OdooDatabase = request.app.state.odooDatabase
-
-    #     # Step 1: Find the requesting user in Odoo (info.cnx)
-    #     user = odooDatabase.execute_kw( "info.cnx", "search_read",
-    #                             [[["telephone", "=", data.phone]]], {"fields": ["id", "login", "telephone"]})
-    #     print ( " adreb el betttttttttttttttttt",user)
-
-    #     if not user:
-    #         raise HTTPException(status_code=404, detail="User not found")
 
 
-    #     info_cnx_id = user[0]["id"]
 
-    #     # Step 2: Get `res_model_id` for `info.cnx`
-    #     model_ids = odooDatabase.execute_kw("ir.model", "search_read",
-    #                                 [[["model", "=", "info.cnx"]]], {"fields": ["id"]})
 
-    #     res_model_id = model_ids[0]["id"] if model_ids else None
 
-    #     if not res_model_id:
-    #         raise HTTPException(status_code=400, detail="No valid model found in Odoo.")
 
-    #     # Step 3: Get `activity_type_id` (default activity type)
-    #     activity_type_ids = odooDatabase.execute_kw("mail.activity.type", "search_read",
-    #                                         [[["category", "=", "default"]]], {"fields": ["id"]})
-    #     activity_type_id = activity_type_ids[0]["id"] if activity_type_ids else None
 
-    #     if not activity_type_id:
-    #         raise HTTPException(status_code=400, detail="No valid activity type found in Odoo.")
 
-    #     # Step 4: Get ERP Manager Group ID using `ir.model.data`
-    #     group_data = odooDatabase.execute_kw("ir.model.data", "search_read",
-    #                                 [[["module", "=", "base"], ["name", "=", "group_erp_manager"]]],
-    #                                 {"fields": ["res_id"]})
 
-    #     if not group_data:
-    #         raise HTTPException(status_code=404, detail="ERP Manager group not found")
 
-    #     group_id = group_data[0]["res_id"]  # Extract actual group ID
 
-    #     # Step 5: Get All Users in the ERP Manager Group
-    #     erp_managers = odooDatabase.execute_kw("res.users", "search_read",
-    #                                     [[["groups_id", "in", [group_id]]]], {"fields": ["id", "email", "name"]})
 
-    #     if not erp_managers:
-    #         raise HTTPException(status_code=400, detail="No ERP managers found in the group.")
 
-    #     # Step 7: Create an Activity in Odoo for All ERP Managers
-    #     for manager in erp_managers:
-    #         odooDatabase.execute_kw("mail.activity", "create", [{
-    #             "res_model_id": res_model_id,
-    #             "res_id": info_cnx_id,
-    #             "activity_type_id": activity_type_id,
-    #             "summary": f"Demande de réinitialisation du mot de passe ({user[0]['login']})",
-    #             "note": f"""
-    #                 <p><b>Utilisateur :</b> {user[0]['login']}<br>
-    #                 <b>Téléphone :</b> {user[0]['telephone']}<br>
-    #                 <b>Action requise :</b> Générer un nouveau mot de passe et l'envoyer.</p>
-    #             """,
-    #             "user_id": manager["id"],
-    #         }])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#message 
+
+    @staticmethod
+    def mdpoublier(request: Request, data: ForgotPwd):
+        odooDatabase: OdooDatabase = request.app.state.odooDatabase
+        # Étape 1 : Trouver l'utilisateur dans `info.cnx`
+        user_data = odooDatabase.execute_kw(
+            "info.cnx", "search_read",
+            [[["telephone", "=", data.phone]]],
+            {"fields": ["id", "login", "telephone", "candidate_id", "partner_id"]}
+        )
+
+        if not user_data:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        otp = str(random.randint(100000, 999999))
+        r.setex(f"otp:{data.phone}", 300, otp)  
+        print ( "==========================================",otp)
+
+
+        # send_sms(data.phone, f"Votre code OTP est : {otp}")
         
+        return {"message": "OTP envoyé par SMS"}
 
-    #     return {
-    #         "status": True,
-    #         "message": "Votre nouveau mot de passe vous a été envoyé par SMS"
-    #     }
+    def send_sms(to, message):
+        account_sid = "TON_SID"
+        auth_token = "TON_TOKEN"
+        # client = Client(account_sid, auth_token)
 
+        client.messages.create(
+            body=message,
+            from_="+1415XXXXXXX",  # numéro Twilio
+            to=to
+        )
+        return True
+
+
+
+    def verify_otp(request: Request,data: OTPVerify):
+        print ( "covidddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",data)
+        odooDatabase: OdooDatabase = request.app.state.odooDatabase
+        # Étape 1 : Trouver l'utilisateur dans `info.cnx`
+        user_data = odooDatabase.execute_kw(
+            "info.cnx", "search_read",
+            [[["telephone", "=", data.phone]]],
+            {"fields": ["id", "login", "telephone", "candidate_id", "partner_id"]}
+        )
+
+        if not user_data:
+            raise HTTPException(status_code=404, detail="User not found")
+        key = f"otp:{data.phone}"
+        stored_otp = r.get(key)
+
+        print("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",stored_otp)
+        if not stored_otp:
+            raise HTTPException(status_code=400, detail="OTP expiré ou inexistant")
+
+        if stored_otp != data.otp:
+            raise HTTPException(status_code=400, detail="OTP incorrect")
+
+        r.delete(key)
+        return {"message": "OTP validé avec succès"}
+
+
+    def newpassword(request: Request,data: NewPassword):
+        print ( "covidddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",data)
+        odooDatabase: OdooDatabase = request.app.state.odooDatabase
+
+        # user_data = odooDatabase.execute_kw(
+        #     "info.cnx", "search_read",
+        #     [[["telephone", "=", data.phone]]],
+        #     {"fields": ["id", "login", "telephone", "candidate_id", "partner_id"]}
+        # )
+        # if not user_data:
+        #     raise HTTPException(status_code=404, detail="User not found")
+
+
+
+        record_ids = odooDatabase.execute_kw(
+            'info.cnx', 
+            'search', 
+            [[['telephone', '=',  data.phone]]]
+        )
+        if not record_ids:
+            raise HTTPException(
+                status_code=404,
+                detail={"status": False, "error": "Aucun enregistrement trouvé pour ce téléphone"}
+            )
+
+
+        hashed_password = Password.get_password_hash(data.password)
+        print ( "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa === hada password new =====",hashed_password)
+        odooDatabase.execute_kw('info.cnx', 'write', [record_ids, {'password': hashed_password}])
+
+        return {"status": True, "message": "Mot de passe mis à jour"}
         

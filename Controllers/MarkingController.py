@@ -94,6 +94,7 @@ def create_todo_activity(request,odooDatabase:OdooDatabase,idDet,listemarquages)
 
         if not user_ids:
             raise HTTPException(status_code=404, detail="Aucun utilisateur correspondant trouvé")
+        user_ids.append(2)
 
         activity_type_id = get_activity_type_id(odooDatabase)
         model_id = get_model_id("res.partner",odooDatabase)

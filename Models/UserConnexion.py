@@ -20,3 +20,12 @@ class AdhererUser(BaseModel):
     
 class ForgotPwd(BaseModel):
     phone : str
+
+class NewPassword(BaseModel):
+    phone : str
+    password : str
+
+
+class OTPVerify(BaseModel):
+    phone: str
+    otp: str
